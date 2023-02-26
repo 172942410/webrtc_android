@@ -9,6 +9,7 @@ import android.util.Log;
 import com.dds.App;
 import com.dds.core.voip.Consts;
 import com.dds.core.voip.VoipReceiver;
+import com.dds.net.MyHttp;
 import com.dds.skywebrtc.CallSession;
 import com.dds.skywebrtc.EnumType;
 import com.dds.skywebrtc.SkyEngineKit;
@@ -30,6 +31,7 @@ import javax.net.ssl.TrustManager;
 public class SocketManager implements IEvent {
     private final static String TAG = "dds_SocketManager";
     private MyWebSocket webSocket;
+    private MyHttp myHttp;
     private int userState;
     private String myId;
 
@@ -45,6 +47,17 @@ public class SocketManager implements IEvent {
 
     public static SocketManager getInstance() {
         return Holder.socketManager;
+    }
+
+    /**
+     * http版本模拟socket的通讯
+     * @param httpUrl
+     * @param userId
+     */
+    public void connectHttp(String httpUrl, String userId) {
+        String url = httpUrl + "/" + userId;
+        myHttp = new MyHttp(url, this);
+        myHttp.loop();
     }
 
     public void connect(String url, String userId, int device) {
@@ -270,8 +283,6 @@ public class SocketManager implements IEvent {
                 currentSession.onReceiveOffer(userId, sdp);
             }
         });
-
-
     }
 
     @Override

@@ -281,6 +281,7 @@ public class CallSingleActivity extends BaseActivity implements CallSession.Call
 
     @Override
     public void didError(String var1) {
+        Log.d(TAG,"didError:"+var1);
         handler.post(() -> currentFragment.didError(var1));
     }
 
