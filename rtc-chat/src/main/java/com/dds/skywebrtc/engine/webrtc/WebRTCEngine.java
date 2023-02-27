@@ -204,7 +204,10 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (peer != null) {
             IceCandidate iceCandidate = new IceCandidate(id, label, candidate);
             peer.addRemoteIceCandidate(iceCandidate);
-
+        } else {
+            //TODO 测试代码
+            IceCandidate iceCandidate = new IceCandidate(id, label, candidate);
+            peer.addRemoteIceCandidate(iceCandidate);
         }
     }
 
@@ -215,7 +218,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             peer.close();
             peers.remove(userId);
         }
-       Log.d(TAG, "leaveRoom peers.size() = " + peers.size() + "; mCallback = " + mCallback);
+        Log.d(TAG, "leaveRoom peers.size() = " + peers.size() + "; mCallback = " + mCallback);
         if (peers.size() <= 1) {
             if (mCallback != null) {
                 mCallback.exitRoom();
@@ -674,10 +677,10 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     @Override
     public void onDisconnected(String userId) {
         if (mCallback != null) {
-           Log.d(TAG, "onDisconnected mCallback != null");
+            Log.d(TAG, "onDisconnected mCallback != null");
             mCallback.onDisconnected(userId);
         } else {
-           Log.d(TAG, "onDisconnected mCallback == null");
+            Log.d(TAG, "onDisconnected mCallback == null");
         }
     }
 

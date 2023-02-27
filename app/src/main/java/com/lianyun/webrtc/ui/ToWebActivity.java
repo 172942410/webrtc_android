@@ -19,12 +19,10 @@ import com.dds.core.base.BaseActivity;
 import com.dds.core.consts.Urls;
 import com.dds.core.socket.IUserState;
 import com.dds.core.socket.SocketManager;
-import com.dds.core.voip.CallSingleActivity;
 import com.dds.webrtc.R;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.webrtc.PeerConnectionFactory;
 
 import java.net.URI;
 
@@ -73,7 +71,7 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
         SocketManager.getInstance().connectHttp(Urls.HTTP, username);
 //        windows hololens
-        CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
+//        CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
     }
 
     @Override
@@ -102,15 +100,17 @@ public class ToWebActivity extends BaseActivity implements IUserState {
     /**
      * 1，创建socket链接；获取信息
      */
-    public void connectSocket(){
+    public void connectSocket() {
         String host = "ws://ws.xx.com/server/xx";
         URI serverURI = URI.create(host);
         WebSocketClient mWebSocketClient = new WebSocketClient(serverURI) {
-            @Override public void onOpen(ServerHandshake handshakedata) {
+            @Override
+            public void onOpen(ServerHandshake handshakedata) {
                 Log.d(TAG, "socket state connect");
             }
 
-            @Override public void onMessage(String message) {
+            @Override
+            public void onMessage(String message) {
                 Log.d(TAG, "web socket onMessage:" + message);
 //                try {
 //                    TestBean bean =  JSON.parseObject(message,TestBean.class);
@@ -146,11 +146,13 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 //                }
             }
 
-            @Override public void onClose(int code, String reason, boolean remote) {
+            @Override
+            public void onClose(int code, String reason, boolean remote) {
                 Log.d(TAG, "web socket onClose code:" + code + " reason:" + reason + " remote:" + remote);
             }
 
-            @Override public void onError(Exception ex) {
+            @Override
+            public void onError(Exception ex) {
                 Log.d(TAG, "web socket onError:" + ex.getLocalizedMessage());
             }
         };

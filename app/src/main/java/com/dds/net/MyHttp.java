@@ -33,18 +33,17 @@ public class MyHttp {
     }
 
 
-
     public void onError(Throwable ex) {
         Log.e("dds_error", "onError:" + ex.toString());
         this.iEvent.logout("onError");
     }
 
     public void onMessage(String message) {
-        Log.d(TAG, message);
-        if(!TextUtils.isEmpty(message)) {
+        Log.d(TAG, "message：" + message);
+        if (!TextUtils.isEmpty(message)) {
             handleMessage(message);
         }
-//        new requestThread().start();
+        new requestThread().start();
     }
 
 
@@ -53,70 +52,73 @@ public class MyHttp {
     private void handleMessage(String message) {
         Map map = JSON.parseObject(message, Map.class);
         String eventName = (String) map.get("eventName");
-        if (eventName == null) return;
+        int messageType = (Integer) map.get("MessageType");
+        if (eventName == null && messageType < 0) {
+            return;
+        }
         // 登录成功
-        if (eventName.equals("__login_success")) {
+        if ("__login_success".equals(eventName)) {
             handleLogin(map);
             return;
         }
         // 被邀请
-        if (eventName.equals("__invite")) {
+        if ("__invite".equals(eventName)) {
             handleInvite(map);
             return;
         }
         // 取消拨出
-        if (eventName.equals("__cancel")) {
+        if ("__cancel".equals(eventName)) {
             handleCancel(map);
             return;
         }
         // 响铃
-        if (eventName.equals("__ring")) {
+        if ("__ring".equals(eventName)) {
             handleRing(map);
             return;
         }
         // 进入房间
-        if (eventName.equals("__peers")) {
+        if ("__peers".equals(eventName)) {
             handlePeers(map);
             return;
         }
         // 新人入房间
-        if (eventName.equals("__new_peer")) {
+        if ("__new_peer".equals(eventName)) {
             handleNewPeer(map);
             return;
         }
         // 拒绝接听
-        if (eventName.equals("__reject")) {
+        if ("__reject".equals(eventName)) {
             handleReject(map);
             return;
         }
         // offer
-        if (eventName.equals("__offer")) {
-            handleOffer(map);
+        if ("__offer".equals(eventName) || messageType == 1) {
+            handleInvite(map);//作为 接受者 视为 需要被邀请 接受邀请
+//            handleOffer(map);
+//            handlePeers(map);//进入房间
             return;
         }
         // answer
-        if (eventName.equals("__answer")) {
+        if ("__answer".equals(eventName) || messageType == 2) {
             handleAnswer(map);
             return;
         }
         // ice-candidate
-        if (eventName.equals("__ice_candidate")) {
+        if ("__ice_candidate".equals(eventName) || messageType == 3) {
             handleIceCandidate(map);
         }
         // 离开房间
-        if (eventName.equals("__leave")) {
+        if ("__leave".equals(eventName)) {
             handleLeave(map);
         }
         // 切换到语音
-        if (eventName.equals("__audio")) {
+        if ("__audio".equals(eventName)) {
             handleTransAudio(map);
         }
         // 意外断开
-        if (eventName.equals("__disconnect")) {
+        if ("__disconnect".equals(eventName)) {
             handleDisConnect(map);
         }
-
-
     }
 
     private void handleDisConnect(Map map) {
@@ -147,6 +149,7 @@ public class MyHttp {
     }
 
     private void handleIceCandidate(Map map) {
+//        TODO 这里作为发起方或应答方都需要设置
         Map data = (Map) map.get("data");
         if (data != null) {
             String userID = (String) data.get("fromID");
@@ -154,10 +157,28 @@ public class MyHttp {
             int label = (int) data.get("label");
             String candidate = (String) data.get("candidate");
             this.iEvent.onIceCandidate(userID, id, label, candidate);
+        } else {
+            String candidateStr = (String) map.get("Data");
+            String iceDataSeparator = (String) map.get("IceDataSeparator");
+            if (!TextUtils.isEmpty(candidateStr)) {
+                if (TextUtils.isEmpty(iceDataSeparator)) {
+                    iceDataSeparator = "\\|";
+                } else if (iceDataSeparator.equals("|")) {
+                    iceDataSeparator = "\\|";
+                }
+                String[] candidateInfo = candidateStr.split(iceDataSeparator);
+                if (candidateInfo.length > 2) {
+                    String id = candidateInfo[2];
+                    int label = Integer.parseInt(candidateInfo[1]);
+                    String candidate = candidateInfo[0];
+                    this.iEvent.onIceCandidate("lipengjun", id, label, candidate);
+                }
+            }
         }
     }
 
     private void handleAnswer(Map map) {
+//        TODO 这里作为 发起方 接收到 应答方 发来的answer时进行解析设置 然后设置证书
         Map data = (Map) map.get("data");
         if (data != null) {
             String sdp = (String) data.get("sdp");
@@ -167,11 +188,17 @@ public class MyHttp {
     }
 
     private void handleOffer(Map map) {
+        //TODO 这里作为 应答方 接收到对方发来的offer进行解析 发送成功之后设置证书
         Map data = (Map) map.get("data");
         if (data != null) {
             String sdp = (String) data.get("sdp");
             String userID = (String) data.get("fromID");
             this.iEvent.onOffer(userID, sdp);
+        } else {
+            String sdpStr = (String) map.get("Data");
+            if (!TextUtils.isEmpty(sdpStr)) {
+                this.iEvent.onOffer("lipengjun", sdpStr);
+            }
         }
     }
 
@@ -227,6 +254,8 @@ public class MyHttp {
             String inviteID = (String) data.get("inviteID");
             String userList = (String) data.get("userList");
             this.iEvent.onInvite(room, audioOnly, inviteID, userList);
+        } else {
+            this.iEvent.onInvite("room", false, "lipengjun", "lipengjun");
         }
     }
 
@@ -238,15 +267,17 @@ public class MyHttp {
         }
     }
 
-    private void send(String jsonStr){
+    private void send(String jsonStr) {
 
     }
+
     /**
      * 主动发送的 http 请求
      * 目前测试就123
+     *
      * @param map
      */
-    private void send(Map<String, Object> map){
+    private void send(Map<String, Object> map) {
         HttpRequestPresenter.getInstance().post(url, map, new ICallback() {
             @Override
             public void onSuccess(String result) {
@@ -260,18 +291,18 @@ public class MyHttp {
             }
         });
     }
+
     /**
      * ------------------------------发送消息----------------------------------------
      */
     public void createRoom(String room, int roomSize, String myId) {
         Map<String, Object> map = new HashMap<>();
+        //TODO 这里 作为发起方 要重新组织数据；用http模拟发送offer给服务器；等待 应答方 接收
         map.put("eventName", "__create");
-
         Map<String, Object> childMap = new HashMap<>();
         childMap.put("room", room);
         childMap.put("roomSize", roomSize);
         childMap.put("userID", myId);
-
         map.put("data", childMap);
 //        JSONObject object = new JSONObject(map);
 //        final String jsonString = object.toString();
@@ -386,7 +417,7 @@ public class MyHttp {
         final String jsonString = object.toString();
         Log.d(TAG, "send-->" + jsonString);
 //        if (isOpen()) {
-            send(jsonString);
+        send(jsonString);
 //        }
     }
 
@@ -437,7 +468,7 @@ public class MyHttp {
 //        final String jsonString = object.toString();
 //        Log.d(TAG, "send-->" + jsonString);
 //        if (isOpen()) {
-            send(map);
+        send(map);
 //        }
     }
 
@@ -470,42 +501,47 @@ public class MyHttp {
         send(jsonString);
     }
 
-    int count ;
+    int count;
+
     /**
      * 开始轮训请求
      */
     public void loop() {
-//        new requestThread().start();
+        new requestThread().start();
         //请求连接 hololens 或者 windows
     }
 
+    /**
+     * 作为 应答方 要实时轮训 发起方 送来的消息
+     */
     class requestThread extends Thread {
         @Override
         public void run() {
             super.run();
             try {
-                sleep(1000l);
+                sleep(2000l);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             count++;
-            Log.d(TAG,"开启请求线程:"+count);
+            Log.d(TAG, "开启请求线程:" + count);
 //            hololens windows
-            HttpRequestPresenter.getInstance().get(Urls.HTTP + "/hololens", null , new ICallback() {
+            HttpRequestPresenter.getInstance().get(Urls.HTTP + "/windows", null, new ICallback() {
                 @Override
                 public void onSuccess(String result) {
-                    Log.d(TAG,"请求线程到结果:"+count+":"+result);
+                    Log.d(TAG, "请求线程到结果:" + count + ":" + result);
                     onMessage(result);
                 }
 
                 @Override
                 public void onFailure(int code, Throwable t) {
-                    Log.e(TAG,"请求线程到错误："+count);
+                    Log.e(TAG, "请求线程到错误：" + count);
                     onError(t);
                 }
             });
         }
     }
+
     // 忽略证书
     public static class TrustManagerTest implements X509TrustManager {
 

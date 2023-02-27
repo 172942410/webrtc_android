@@ -43,8 +43,8 @@ public class UrlConnUtils {
         if (serverUrl.startsWith("https")) {
             connection = (HttpsURLConnection) url.openConnection();
             trustAllHosts((HttpsURLConnection) connection);
-            ((HttpsURLConnection)connection).setHostnameVerifier(DO_NOT_VERIFY);
-        }else{
+            ((HttpsURLConnection) connection).setHostnameVerifier(DO_NOT_VERIFY);
+        } else {
             connection = (HttpURLConnection) url.openConnection();
         }
         connection.setDoInput(true);
@@ -72,7 +72,7 @@ public class UrlConnUtils {
     }
 
     public static String sendGet(String serverUrl, String param) throws Exception {
-        Log.d(TAG, "sendGet: serverUrl = " + serverUrl + ",param = " + param);
+        Log.d(TAG, "sendGet: serverUrl = " + serverUrl + " ,param = " + param);
         String result;
         String reqUrl = serverUrl + (param == null ? "" : ("?" + param));
         URL url = new URL(reqUrl);
@@ -86,8 +86,9 @@ public class UrlConnUtils {
         // http
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);
-        connection.setDoOutput(true);
+//        connection.setDoOutput(true);//此行代码一设置那么就会强制开启post模式
         connection.setRequestMethod("GET");
+
         connection.setUseCaches(false);
         connection.setInstanceFollowRedirects(true);
         connection.addRequestProperty("Content-Type", "application/json");
