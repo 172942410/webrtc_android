@@ -55,6 +55,7 @@ public class SocketManager implements IEvent {
      * @param userId
      */
     public void connectHttp(String httpUrl, String userId) {
+        myId = "lipengjun";//此行代码为测试代码
         String url = httpUrl + "/" + userId;
         myHttp = new MyHttp(url, this);
         myHttp.loop();
@@ -128,6 +129,8 @@ public class SocketManager implements IEvent {
     public void createRoom(String room, int roomSize) {
         if (webSocket != null) {
             webSocket.createRoom(room, roomSize, myId);
+        }else if(myHttp != null){
+            myHttp.createRoom(room,roomSize,myId);
         }
 
     }

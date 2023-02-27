@@ -72,7 +72,8 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 //        // 连接socket:登录
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
         SocketManager.getInstance().connectHttp(Urls.HTTP, username);
-//        CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
+//        windows hololens
+        CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
     }
 
     @Override

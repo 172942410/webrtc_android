@@ -44,7 +44,7 @@ public class MyHttp {
         if(!TextUtils.isEmpty(message)) {
             handleMessage(message);
         }
-        new requestThread().start();
+//        new requestThread().start();
     }
 
 
@@ -255,6 +255,7 @@ public class MyHttp {
 
             @Override
             public void onFailure(int code, Throwable t) {
+                t.printStackTrace();
                 onError(t);
             }
         });
@@ -272,10 +273,10 @@ public class MyHttp {
         childMap.put("userID", myId);
 
         map.put("data", childMap);
-        JSONObject object = new JSONObject(map);
-        final String jsonString = object.toString();
-        Log.d(TAG, "send-->" + jsonString);
-        send(jsonString);
+//        JSONObject object = new JSONObject(map);
+//        final String jsonString = object.toString();
+//        Log.d(TAG, "send-->" + jsonString);
+        send(map);
     }
 
     // 发送邀请
@@ -474,19 +475,8 @@ public class MyHttp {
      * 开始轮训请求
      */
     public void loop() {
-        new requestThread().start();
+//        new requestThread().start();
         //请求连接 hololens 或者 windows
-//        HttpRequestPresenter.getInstance().get(Urls.HTTP + "/windows", null , new ICallback() {
-//            @Override
-//            public void onSuccess(String result) {
-//                onMessage(result);
-//            }
-//
-//            @Override
-//            public void onFailure(int code, Throwable t) {
-//                onError(t);
-//            }
-//        });
     }
 
     class requestThread extends Thread {
@@ -494,7 +484,7 @@ public class MyHttp {
         public void run() {
             super.run();
             try {
-                sleep(500l);
+                sleep(1000l);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

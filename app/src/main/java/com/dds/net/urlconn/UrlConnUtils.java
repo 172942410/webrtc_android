@@ -39,10 +39,13 @@ public class UrlConnUtils {
         String result;
         DataOutputStream out;
         URL url = new URL(serverUrl);
-        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+        HttpURLConnection connection;
         if (serverUrl.startsWith("https")) {
-            trustAllHosts(connection);
-            connection.setHostnameVerifier(DO_NOT_VERIFY);
+            connection = (HttpsURLConnection) url.openConnection();
+            trustAllHosts((HttpsURLConnection) connection);
+            ((HttpsURLConnection)connection).setHostnameVerifier(DO_NOT_VERIFY);
+        }else{
+            connection = (HttpURLConnection) url.openConnection();
         }
         connection.setDoInput(true);
         connection.setDoOutput(true);
