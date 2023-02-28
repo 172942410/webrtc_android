@@ -146,7 +146,8 @@ public class UrlConnUtils {
                 if (value == null || "".equals(value)) {
                     continue;
                 }
-                jsonObject.put(key, String.valueOf(params.get(key)));
+//                jsonObject.put(key, String.valueOf(params.get(key)));
+                jsonObject.put(key, params.get(key));
             }
         } catch (JSONException e) {
             return null;

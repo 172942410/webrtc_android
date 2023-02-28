@@ -180,6 +180,9 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             peer.setOffer(false);
             peer.setRemoteDescription(sdp);
             peer.createAnswer();
+        }else{
+            Log.e(TAG,"获取联系人为空异常：" + userId+"，peers：" + peers);
+            new Throwable("获取联系人为空异常：" + userId+"，peers：" + peers);
         }
     }
 
@@ -190,6 +193,9 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (peer != null) {
             SessionDescription sessionDescription = new SessionDescription(SessionDescription.Type.ANSWER, sdp);
             peer.setRemoteDescription(sessionDescription);
+        }else{
+            Log.e(TAG,"获取联系人为空异常：" + userId+"，peers：" + peers);
+            new Throwable("获取联系人为空异常：" + userId+"，peers：" + peers);
         }
 
 
@@ -202,6 +208,9 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (peer != null) {
             IceCandidate iceCandidate = new IceCandidate(id, label, candidate);
             peer.addRemoteIceCandidate(iceCandidate);
+        }else{
+            Log.e(TAG,"获取联系人为空异常：" + userId+"，peers：" + peers);
+            new Throwable("获取联系人为空异常：" + userId+"，peers：" + peers);
         }
     }
 
@@ -462,23 +471,23 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
 
     private void initIceServer() {
         // 初始化一些stun和turn的地址
-        PeerConnection.IceServer var1 = PeerConnection.IceServer.builder("stun:stun.l.google.com:19302")
-                .createIceServer();
-        iceServers.add(var1);
-
-        PeerConnection.IceServer var11 = PeerConnection.IceServer.builder("stun:42.192.40.58:3478?transport=udp")
-                .createIceServer();
-        PeerConnection.IceServer var12 = PeerConnection.IceServer.builder("turn:42.192.40.58:3478?transport=udp")
-                .setUsername("ddssingsong")
-                .setPassword("123456")
-                .createIceServer();
-        PeerConnection.IceServer var13 = PeerConnection.IceServer.builder("turn:42.192.40.58:3478?transport=tcp")
-                .setUsername("ddssingsong")
-                .setPassword("123456")
-                .createIceServer();
-        iceServers.add(var11);
-        iceServers.add(var12);
-        iceServers.add(var13);
+//        PeerConnection.IceServer var1 = PeerConnection.IceServer.builder("stun:stun.l.google.com:19302")
+//                .createIceServer();
+//        iceServers.add(var1);
+//
+//        PeerConnection.IceServer var11 = PeerConnection.IceServer.builder("stun:42.192.40.58:3478?transport=udp")
+//                .createIceServer();
+//        PeerConnection.IceServer var12 = PeerConnection.IceServer.builder("turn:42.192.40.58:3478?transport=udp")
+//                .setUsername("ddssingsong")
+//                .setPassword("123456")
+//                .createIceServer();
+//        PeerConnection.IceServer var13 = PeerConnection.IceServer.builder("turn:42.192.40.58:3478?transport=tcp")
+//                .setUsername("ddssingsong")
+//                .setPassword("123456")
+//                .createIceServer();
+//        iceServers.add(var11);
+//        iceServers.add(var12);
+//        iceServers.add(var13);
     }
 
     /**
