@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.dds.App;
@@ -19,6 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -51,6 +53,7 @@ public class SocketManager implements IEvent {
 
     /**
      * http版本模拟socket的通讯
+     *
      * @param httpUrl
      * @param userId
      */
@@ -129,8 +132,8 @@ public class SocketManager implements IEvent {
     public void createRoom(String room, int roomSize) {
         if (webSocket != null) {
             webSocket.createRoom(room, roomSize, myId);
-        }else if(myHttp != null){
-            myHttp.createRoom(room,roomSize,myId);
+        } else if (myHttp != null) {
+            myHttp.createRoom(room, roomSize, myId);
         }
 
     }
@@ -168,6 +171,8 @@ public class SocketManager implements IEvent {
     public void sendJoin(String room) {
         if (webSocket != null) {
             webSocket.sendJoin(room, myId);
+        } else if (myHttp != null) {
+            myHttp.sendJoin(room, myId);
         }
     }
 
@@ -178,18 +183,24 @@ public class SocketManager implements IEvent {
     public void sendOffer(String userId, String sdp) {
         if (webSocket != null) {
             webSocket.sendOffer(myId, userId, sdp);
+        } else if (myHttp != null) {
+            myHttp.sendOffer(myId, userId, sdp);
         }
     }
 
     public void sendAnswer(String userId, String sdp) {
         if (webSocket != null) {
             webSocket.sendAnswer(myId, userId, sdp);
+        } else if (myHttp != null) {
+            myHttp.sendAnswer(myId, userId, sdp);
         }
     }
 
     public void sendIceCandidate(String userId, String id, int label, String candidate) {
         if (webSocket != null) {
             webSocket.sendIceCandidate(myId, userId, id, label, candidate);
+        } else if (myHttp != null) {
+            myHttp.sendIceCandidate(myId, userId, id, label, candidate);
         }
     }
 
@@ -283,7 +294,12 @@ public class SocketManager implements IEvent {
         handler.post(() -> {
             CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
             if (currentSession != null) {
-                currentSession.onReceiveOffer(userId, sdp);
+                if (TextUtils.isEmpty(sdp)) {
+                    String sdpStr = (String) mapOffer.get("Data");
+                    currentSession.onReceiveOffer(userId, sdpStr);
+                } else {
+                    currentSession.onReceiveOffer(userId, sdp);
+                }
             }
         });
     }
@@ -353,6 +369,20 @@ public class SocketManager implements IEvent {
     public void reConnect() {
         handler.post(() -> {
             webSocket.reconnect();
+        });
+    }
+
+    Map mapOffer;
+
+    @Override
+    public void setOfferMap(Map map) {
+        mapOffer = map;
+        handler.post(() -> {
+            //自己进入了房间，然后开始发送offer
+            CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
+            if (currentSession != null) {
+                currentSession.setOfferMap(map);
+            }
         });
     }
     //===========================================================================================

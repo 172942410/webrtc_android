@@ -109,4 +109,9 @@ public class VoipEvent implements ISkyEvent {
         Log.d(TAG, "shouldStopRing begin");
         ringPlayer.stop();
     }
+
+    @Override
+    public void setOffer(String userId, String sdp) {
+        SocketManager.getInstance().onOffer(userId, sdp);
+    }
 }

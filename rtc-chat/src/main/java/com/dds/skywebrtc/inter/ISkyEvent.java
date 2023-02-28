@@ -43,5 +43,8 @@ public interface ISkyEvent {
 
     void shouldStopRing();
 
+    //后来测试添加的接口
+    void setOffer(String userId, String sdp);
+
 
 }

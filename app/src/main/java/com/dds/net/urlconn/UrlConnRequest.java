@@ -38,7 +38,7 @@ public class UrlConnRequest implements HttpRequest {
         try {
             String postStr = null;
             if (params != null) {
-                postStr = UrlConnUtils.builderUrlParams(params);
+                postStr = UrlConnUtils.builderJsonParams(params);
             }
             String result = UrlConnUtils.sendPost(url, postStr);
             callback.onSuccess(result);

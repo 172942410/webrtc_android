@@ -181,8 +181,6 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             peer.setRemoteDescription(sdp);
             peer.createAnswer();
         }
-
-
     }
 
     @Override
@@ -202,10 +200,6 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         Log.d("dds_test", "receiveIceCandidate--" + userId);
         Peer peer = peers.get(userId);
         if (peer != null) {
-            IceCandidate iceCandidate = new IceCandidate(id, label, candidate);
-            peer.addRemoteIceCandidate(iceCandidate);
-        } else {
-            //TODO 测试代码
             IceCandidate iceCandidate = new IceCandidate(id, label, candidate);
             peer.addRemoteIceCandidate(iceCandidate);
         }

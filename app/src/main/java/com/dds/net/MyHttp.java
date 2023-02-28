@@ -43,7 +43,7 @@ public class MyHttp {
         if (!TextUtils.isEmpty(message)) {
             handleMessage(message);
         }
-        new requestThread().start();
+//        new requestThread().start();
     }
 
 
@@ -61,8 +61,8 @@ public class MyHttp {
             handleLogin(map);
             return;
         }
-        // 被邀请
-        if ("__invite".equals(eventName)) {
+        // 被邀请 1.接收到offer后就作为 应答方 被邀请了
+        if ("__invite".equals(eventName) || messageType == 1) {
             handleInvite(map);
             return;
         }
@@ -76,7 +76,7 @@ public class MyHttp {
             handleRing(map);
             return;
         }
-        // 进入房间
+        // 进入房间 3
         if ("__peers".equals(eventName)) {
             handlePeers(map);
             return;
@@ -91,10 +91,10 @@ public class MyHttp {
             handleReject(map);
             return;
         }
-        // offer
-        if ("__offer".equals(eventName) || messageType == 1) {
-            handleInvite(map);//作为 接受者 视为 需要被邀请 接受邀请
-//            handleOffer(map);
+        // offer  2.接收到offer第一步是需要先 应答 || messageType == 1
+        if ("__offer".equals(eventName)) {
+//            handleInvite(map);//作为 接受者 视为 需要被邀请 接受邀请
+            handleOffer(map);
 //            handlePeers(map);//进入房间
             return;
         }
@@ -212,13 +212,18 @@ public class MyHttp {
     }
 
     private void handlePeers(Map map) {
-        Map data = (Map) map.get("data");
-        if (data != null) {
-            String you = (String) data.get("you");
-            String connections = (String) data.get("connections");
-            int roomSize = (int) data.get("roomSize");
-            this.iEvent.onPeers(you, connections, roomSize);
-        }
+//        Map data = (Map) map.get("data");
+//        if (data != null) {
+//            String you = (String) data.get("you");
+//            String connections = (String) data.get("connections");
+//            int roomSize = (int) data.get("roomSize");
+//            this.iEvent.onPeers(you, connections, roomSize);
+//        }else{
+        String you = "lipengjun";
+        String connections = "lipengjun";
+        int roomSize = 2;
+        this.iEvent.onPeers(you, connections, roomSize);
+//        }
     }
 
     private void handleNewPeer(Map map) {
@@ -256,6 +261,7 @@ public class MyHttp {
             this.iEvent.onInvite(room, audioOnly, inviteID, userList);
         } else {
             this.iEvent.onInvite("room", false, "lipengjun", "lipengjun");
+            this.iEvent.setOfferMap(map);
         }
     }
 
@@ -278,10 +284,12 @@ public class MyHttp {
      * @param map
      */
     private void send(Map<String, Object> map) {
-        HttpRequestPresenter.getInstance().post(url, map, new ICallback() {
+//        windows
+        HttpRequestPresenter.getInstance().post(Urls.HTTP + "/hololens", map, new ICallback() {
             @Override
             public void onSuccess(String result) {
                 onMessage(result);
+                new requestThread().start();
             }
 
             @Override
@@ -376,12 +384,12 @@ public class MyHttp {
         childMap.put("room", room);
         childMap.put("userID", myId);
 
-
         map.put("data", childMap);
         JSONObject object = new JSONObject(map);
         final String jsonString = object.toString();
         Log.d(TAG, "send-->" + jsonString);
         send(jsonString);
+        handlePeers(map);
     }
 
     // 拒接接听
@@ -439,35 +447,42 @@ public class MyHttp {
     // send answer
     public void sendAnswer(String myId, String userId, String sdp) {
         Map<String, Object> map = new HashMap<>();
-        Map<String, Object> childMap = new HashMap<>();
-        childMap.put("sdp", sdp);
-        childMap.put("fromID", myId);
-        childMap.put("userID", userId);
-        map.put("data", childMap);
-        map.put("eventName", "__answer");
+//        Map<String, Object> childMap = new HashMap<>();
+//        childMap.put("sdp", sdp);
+//        childMap.put("fromID", myId);
+//        childMap.put("userID", userId);
+//        map.put("data", childMap);
+//        map.put("eventName", "__answer");
 //        JSONObject object = new JSONObject(map);
 //        final String jsonString = object.toString();
 //        Log.d(TAG, "send-->" + jsonString);
+        map.put("MessageType", 2);
+        map.put("Data", sdp);
+        map.put("IceDataSeparator", "");
+
         send(map);
     }
 
     // send ice-candidate
     public void sendIceCandidate(String myId, String userId, String id, int label, String candidate) {
         Map<String, Object> map = new HashMap<>();
-        map.put("eventName", "__ice_candidate");
-
-        Map<String, Object> childMap = new HashMap<>();
-        childMap.put("userID", userId);
-        childMap.put("fromID", myId);
-        childMap.put("id", id);
-        childMap.put("label", label);
-        childMap.put("candidate", candidate);
-
-        map.put("data", childMap);
+//        map.put("eventName", "__ice_candidate");
+//
+//        Map<String, Object> childMap = new HashMap<>();
+//        childMap.put("userID", userId);
+//        childMap.put("fromID", myId);
+//        childMap.put("id", id);
+//        childMap.put("label", label);
+//        childMap.put("candidate", candidate);
+//
+//        map.put("data", childMap);
 //        JSONObject object = new JSONObject(map);
 //        final String jsonString = object.toString();
 //        Log.d(TAG, "send-->" + jsonString);
 //        if (isOpen()) {
+        map.put("MessageType", 3);
+        map.put("Data", candidate + "|" + label + "|" + id);
+        map.put("IceDataSeparator", "|");
         send(map);
 //        }
     }

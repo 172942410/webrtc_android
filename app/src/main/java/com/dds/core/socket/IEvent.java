@@ -1,5 +1,7 @@
 package com.dds.core.socket;
 
+import java.util.Map;
+
 /**
  * Created by dds on 2019/7/26.
  * ddssingsong@163.com
@@ -45,4 +47,6 @@ public interface IEvent {
 
     void reConnect();
 
+    // 测试的时候 加入房间后 需要 新加的接口
+    void setOfferMap(Map map);
 }

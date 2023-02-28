@@ -35,7 +35,7 @@ public class UrlConnUtils {
     private static final String TAG = "UrlConnUtils";
 
     public static String sendPost(String serverUrl, String formBody) throws Exception {
-        Log.d(TAG, "sendPost: serverUrl = " + serverUrl + formBody);
+        Log.d(TAG, "sendPost: serverUrl = " + serverUrl + " ,body:" + formBody);
         String result;
         DataOutputStream out;
         URL url = new URL(serverUrl);

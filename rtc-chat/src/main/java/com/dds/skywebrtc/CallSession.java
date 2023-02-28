@@ -18,6 +18,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,6 +29,7 @@ import java.util.concurrent.Executors;
  */
 public class CallSession implements EngineCallback {
     private static final String TAG = "CallSession";
+    public Map mapOffer;
     private WeakReference<CallSessionCallback> sessionCallback;
     private ExecutorService executor;
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -417,6 +419,13 @@ public class CallSession implements EngineCallback {
         // 关闭响铃
         if (mEvent != null) {
             mEvent.shouldStopRing();
+            if (mapOffer != null){
+                String sdpStr = (String) mapOffer.get("Data");
+                mEvent.setOffer("lipengjun",sdpStr);
+            }else{
+                mEvent.setOffer("lipengjun",null);
+            }
+
         }
         // 更换界面
         _callState = EnumType.CallState.Connected;
@@ -523,6 +532,10 @@ public class CallSession implements EngineCallback {
         } else {
             Log.d(TAG, "onDisconnected sessionCallback.get() == null ");
         }
+    }
+
+    public void setOfferMap(Map map) {
+        this.mapOffer = map;
     }
 
     public interface CallSessionCallback {
