@@ -470,7 +470,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     // -----------------------------其他方法--------------------------------
 
     private void initIceServer() {
-        // 初始化一些stun和turn的地址
+        // 初始化一些stun和turn的地址 TODO 测试的时候先不需要这个
 //        PeerConnection.IceServer var1 = PeerConnection.IceServer.builder("stun:stun.l.google.com:19302")
 //                .createIceServer();
 //        iceServers.add(var1);

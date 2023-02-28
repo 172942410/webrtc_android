@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
 
-    tools:context="com.dds.LauncherActivity">
+    tools:context="com.lianyun.webrtc.ui.ToWebActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -45,8 +45,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="java"
-            android:text="确定"
+            android:text="等待接听"
             android:textAllCaps="false" />
+        <Button
+            android:id="@+id/button9"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="callVideo"
+            android:text="发起视频"
+            android:textAllCaps="false"
+            android:layout_marginTop="50dp"
+            />
     </LinearLayout>
 
 </LinearLayout>

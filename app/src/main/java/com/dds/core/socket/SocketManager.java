@@ -55,12 +55,13 @@ public class SocketManager implements IEvent {
      * http版本模拟socket的通讯
      *
      * @param httpUrl
-     * @param userId
+     * @param localPeerId
+     * @param remotePeerId
      */
-    public void connectHttp(String httpUrl, String userId) {
+    public void connectHttp(String httpUrl, String localPeerId, String remotePeerId) {
         myId = "lipengjun";//此行代码为测试代码
-        String url = httpUrl + "/" + userId;
-        myHttp = new MyHttp(url, this);
+//        String url = httpUrl + "/" + userId;
+        myHttp = new MyHttp(httpUrl, localPeerId, remotePeerId, this);
         myHttp.loop();
     }
 

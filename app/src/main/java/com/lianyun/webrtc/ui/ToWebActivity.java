@@ -19,6 +19,7 @@ import com.dds.core.base.BaseActivity;
 import com.dds.core.consts.Urls;
 import com.dds.core.socket.IUserState;
 import com.dds.core.socket.SocketManager;
+import com.dds.core.voip.CallSingleActivity;
 import com.dds.webrtc.R;
 
 import org.java_websocket.client.WebSocketClient;
@@ -69,7 +70,9 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         SocketManager.getInstance().addUserStateCallback(this);
 //        // 连接socket:登录
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
-        SocketManager.getInstance().connectHttp(Urls.HTTP, username);
+        String localPeerId = "windows";
+        String remotePeerId = "hololens";
+        SocketManager.getInstance().connectHttp(Urls.HTTP, localPeerId, remotePeerId);
 //        windows hololens
 //        CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
     }
@@ -157,5 +160,26 @@ public class ToWebActivity extends BaseActivity implements IUserState {
             }
         };
         mWebSocketClient.connect();
+    }
+
+    public void callVideo(View view) {
+        String username = etUser.getText().toString().trim();
+        username = "windows";
+        if (TextUtils.isEmpty(username)) {
+            Toast.makeText(this, "请输入用户名", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // 设置用户名
+        App.getInstance().setUsername(username);
+//        // 添加登录回调
+        SocketManager.getInstance().addUserStateCallback(this);
+//        // 连接socket:登录
+//        SocketManager.getInstance().connect(Urls.WS, username, 0);
+        String localPeerId = "hololens";
+        String remotePeerId = "windows";
+        SocketManager.getInstance().connectHttp(Urls.HTTP, localPeerId,remotePeerId);
+//        windows hololens
+        CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
     }
 }

@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.dds.core.consts.Urls;
 import com.dds.core.socket.IEvent;
 import com.dds.core.util.StringUtil;
 
@@ -26,9 +25,13 @@ public class MyHttp {
     private final static String TAG = "MyHttp";
     private final IEvent iEvent;
     String url;
+    String localPeerId = "";
+    String remotePeerId = "";
 
-    public MyHttp(String serverUri, IEvent event) {
-        this.url = serverUri;
+    public MyHttp(String httpUrl, String localPeerId, String remotePeerId, IEvent event) {
+        this.url = httpUrl;
+        this.localPeerId = localPeerId;
+        this.remotePeerId = remotePeerId;
         this.iEvent = event;
     }
 
@@ -184,6 +187,9 @@ public class MyHttp {
             String sdp = (String) data.get("sdp");
             String userID = (String) data.get("fromID");
             this.iEvent.onAnswer(userID, sdp);
+        } else {
+            String sdp = (String) map.get("Data");
+            this.iEvent.onAnswer("lipengjun", sdp);
         }
     }
 
@@ -231,6 +237,8 @@ public class MyHttp {
         if (data != null) {
             String userID = (String) data.get("userID");
             this.iEvent.onNewPeer(userID);
+        } else {
+            this.iEvent.onNewPeer("lipengjun");
         }
     }
 
@@ -284,12 +292,12 @@ public class MyHttp {
      * @param map
      */
     private void send(Map<String, Object> map) {
-//        windows
-        HttpRequestPresenter.getInstance().post(Urls.HTTP + "/hololens", map, new ICallback() {
+//        windows hololens
+        HttpRequestPresenter.getInstance().post(url + "/" + remotePeerId, map, new ICallback() {
             @Override
             public void onSuccess(String result) {
                 onMessage(result);
-                new requestThread().start();
+//                new requestThread().start();
             }
 
             @Override
@@ -315,7 +323,8 @@ public class MyHttp {
 //        JSONObject object = new JSONObject(map);
 //        final String jsonString = object.toString();
 //        Log.d(TAG, "send-->" + jsonString);
-        send(map);
+//        send(map);
+        handleNewPeer(map);
     }
 
     // 发送邀请
@@ -432,15 +441,18 @@ public class MyHttp {
     // send offer
     public void sendOffer(String myId, String userId, String sdp) {
         Map<String, Object> map = new HashMap<>();
-        Map<String, Object> childMap = new HashMap<>();
-        childMap.put("sdp", sdp);
-        childMap.put("userID", userId);
-        childMap.put("fromID", myId);
-        map.put("data", childMap);
-        map.put("eventName", "__offer");
+//        Map<String, Object> childMap = new HashMap<>();
+//        childMap.put("sdp", sdp);
+//        childMap.put("userID", userId);
+//        childMap.put("fromID", myId);
+//        map.put("data", childMap);
+//        map.put("eventName", "__offer");
 //        JSONObject object = new JSONObject(map);
 //        final String jsonString = object.toString();
 //        Log.d(TAG, "send-->" + jsonString);
+        map.put("MessageType", 1);
+        map.put("Data", sdp);
+        map.put("IceDataSeparator", "");
         send(map);
     }
 
@@ -522,17 +534,24 @@ public class MyHttp {
      * 开始轮训请求
      */
     public void loop() {
-        new requestThread().start();
+        new RequestThread().start();
         //请求连接 hololens 或者 windows
     }
+
+    boolean isRun = false;
 
     /**
      * 作为 应答方 要实时轮训 发起方 送来的消息
      */
-    class requestThread extends Thread {
+    class RequestThread extends Thread {
+
         @Override
         public void run() {
             super.run();
+            if (isRun) {
+                return;
+            }
+            isRun = true;
             try {
                 sleep(2000l);
             } catch (InterruptedException e) {
@@ -541,11 +560,13 @@ public class MyHttp {
             count++;
             Log.d(TAG, "开启请求线程:" + count);
 //            hololens windows
-            HttpRequestPresenter.getInstance().get(Urls.HTTP + "/windows", null, new ICallback() {
+            HttpRequestPresenter.getInstance().get(url + "/" + localPeerId, null, new ICallback() {
                 @Override
                 public void onSuccess(String result) {
                     Log.d(TAG, "请求线程到结果:" + count + ":" + result);
                     onMessage(result);
+                    isRun = false;
+                    new RequestThread().start();
                 }
 
                 @Override
