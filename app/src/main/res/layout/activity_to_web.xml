@@ -28,14 +28,19 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <EditText
+        <androidx.appcompat.widget.AppCompatAutoCompleteTextView
             android:id="@+id/et_add"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:digits="0123456789qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM://?="
-            android:hint="请输入服务器地址" />
+            android:hint="请输入服务器地址"
+            android:imeOptions="actionDone"
+            android:lines="1"
+            android:singleLine="true"
+            />
 
         <TextView
+            android:id="@+id/tv_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="服务器端还未提供接口编写" />

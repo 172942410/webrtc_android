@@ -1,4 +1,15 @@
 apply from: "conf.gradle"
+
+ext {
+    rxjavaVersion = '3.1.6'
+    rxandroidVersion = '3.0.2'
+    navigationUiVersion = '2.4.0-alpha04'
+    navigationFragmentVersion = '2.4.0-alpha04'
+    materialVersion = '1.5.0-alpha01'
+    fastjsonVersion = '2.0.24'
+    constraintlayoutVersion = '2.1.0-beta02'
+    appcompatVersion = '1.4.0-alpha03'
+}
 buildscript {
     repositories {
         jcenter()

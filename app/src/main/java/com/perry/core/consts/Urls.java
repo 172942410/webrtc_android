@@ -18,6 +18,8 @@ public class Urls {
     // 信令地址http版本
     public final static String HTTP = "http://" + IP + "/data";
 
+    public static String URL_HOST = HTTP;
+
     // 信令地址
     public final static String WS = "ws://" + IP + "/ws";
 
