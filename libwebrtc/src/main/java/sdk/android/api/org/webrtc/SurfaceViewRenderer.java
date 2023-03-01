@@ -15,6 +15,7 @@ import android.content.res.Resources.NotFoundException;
 import android.graphics.Point;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -246,7 +247,9 @@ public class SurfaceViewRenderer extends SurfaceView
   public void surfaceDestroyed(SurfaceHolder holder) {}
 
   @Override
-  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
+  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    Log.d(TAG,"surfaceChanged holder:"+holder+",format:"+format+",width:"+width+",height:"+height);
+  }
 
   private String getResourceName() {
     try {

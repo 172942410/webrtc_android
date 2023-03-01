@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.dds.webrtc">
+    package="com.lianyun.webrtc">
     <!-- 设置视频直播权限 -->
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
@@ -22,7 +22,7 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
 
     <application
-        android:name="com.dds.App"
+        android:name="com.perry.App"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -45,17 +45,17 @@
         </activity>
 
         <activity
-            android:name="com.dds.LauncherActivity"
+            android:name="com.perry.LauncherActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 
 
-        <activity android:name="com.dds.core.MainActivity" />
+        <activity android:name="com.perry.core.MainActivity" />
 
         <!-- ======================java====================== -->
         <activity
-            android:name="com.dds.core.voip.CallSingleActivity"
+            android:name="com.perry.core.voip.CallSingleActivity"
             android:screenOrientation="portrait"
             android:showOnLockScreen="true"
             android:showWhenLocked="true"
@@ -69,12 +69,12 @@
         </activity>
 
         <activity
-            android:name="com.dds.core.voip.CallMultiActivity"
+            android:name="com.perry.core.voip.CallMultiActivity"
             android:screenOrientation="portrait"
             android:showOnLockScreen="true"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <receiver android:name="com.dds.core.voip.VoipReceiver">
+        <receiver android:name="com.perry.core.voip.VoipReceiver">
             <intent-filter>
                 <action android:name="${applicationId}.voip.Receiver" />
             </intent-filter>
@@ -82,7 +82,7 @@
 
         <!-- 悬浮窗 -->
         <service
-            android:name="com.dds.core.voip.FloatingVoipService"
+            android:name="com.perry.core.voip.FloatingVoipService"
             android:enabled="true"
             android:exported="true" />
     </application>

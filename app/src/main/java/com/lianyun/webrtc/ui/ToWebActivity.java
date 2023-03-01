@@ -13,14 +13,14 @@ import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
 
-import com.dds.App;
-import com.dds.core.MainActivity;
-import com.dds.core.base.BaseActivity;
-import com.dds.core.consts.Urls;
-import com.dds.core.socket.IUserState;
-import com.dds.core.socket.SocketManager;
-import com.dds.core.voip.CallSingleActivity;
-import com.dds.webrtc.R;
+import com.perry.App;
+import com.perry.core.MainActivity;
+import com.perry.core.base.BaseActivity;
+import com.perry.core.consts.Urls;
+import com.perry.core.socket.IUserState;
+import com.perry.core.socket.SocketManager;
+import com.perry.core.voip.CallSingleActivity;
+import com.lianyun.webrtc.R;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
