@@ -273,7 +273,7 @@ public class CallSession implements EngineCallback {
                 mEvent.shouldStopRing();
             }
             // 更换界面
-            _callState = EnumType.CallState.Connected;
+//            _callState = EnumType.CallState.Outgoing;
 
             if (sessionCallback != null && sessionCallback.get() != null) {
                 startTime = System.currentTimeMillis();
@@ -514,8 +514,11 @@ public class CallSession implements EngineCallback {
 
     @Override
     public void onRemoteStream(String userId) {
+        _callState = EnumType.CallState.Connected;
         // 画面预览
         if (sessionCallback != null && sessionCallback.get() != null) {
+            startTime = System.currentTimeMillis();
+            sessionCallback.get().didChangeState(_callState);
            Log.d(TAG, "onRemoteStream sessionCallback.get() != null ");
             sessionCallback.get().didReceiveRemoteVideoTrack(userId);
         } else {

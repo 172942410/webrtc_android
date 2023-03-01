@@ -145,8 +145,8 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
                 }
             }
         }
+        didCreateLocalVideoTrack();
         if (isFromFloatingView) {
-            didCreateLocalVideoTrack();
             if (session != null) {
                 didReceiveRemoteVideoTrack(session.mTargetId);
             }

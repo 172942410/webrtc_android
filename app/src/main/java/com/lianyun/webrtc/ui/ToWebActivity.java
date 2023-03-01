@@ -30,7 +30,7 @@ import java.net.URI;
 public class ToWebActivity extends BaseActivity implements IUserState {
     private static final String TAG = "ToWebActivity";
     private Toolbar toolbar;
-    private EditText etUser;
+    private EditText etAdd;
     private Button button8;
 
     @Override
@@ -50,14 +50,14 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar = findViewById(R.id.toolbar);
-        etUser = findViewById(R.id.et_user);
+        etAdd = findViewById(R.id.et_add);
         button8 = findViewById(R.id.button8);
 
-        etUser.setText(App.getInstance().getUsername());
+        etAdd.setText(App.getInstance().getUsername());
     }
 
     public void java(View view) {
-        String username = etUser.getText().toString().trim();
+        String username = etAdd.getText().toString().trim();
         username = "windows";
         if (TextUtils.isEmpty(username)) {
             Toast.makeText(this, "请输入用户名", Toast.LENGTH_LONG).show();
@@ -163,7 +163,7 @@ public class ToWebActivity extends BaseActivity implements IUserState {
     }
 
     public void callVideo(View view) {
-        String username = etUser.getText().toString().trim();
+        String username = etAdd.getText().toString().trim();
         username = "windows";
         if (TextUtils.isEmpty(username)) {
             Toast.makeText(this, "请输入用户名", Toast.LENGTH_LONG).show();

@@ -192,7 +192,6 @@ public abstract class SingleCallFragment extends Fragment {
         if(state == EnumType.CallState.Connected){
             handler.removeCallbacks(waitingRunnable);
         }
-
     }
 
     public void didChangeMode(Boolean isAudio) {
