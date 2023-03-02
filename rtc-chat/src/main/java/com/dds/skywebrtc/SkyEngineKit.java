@@ -81,8 +81,6 @@ public class SkyEngineKit {
         mCurrentCallSession.setCallState(EnumType.CallState.Outgoing);
         // 创建房间
         mCurrentCallSession.createHome(room, 2);
-
-
         return true;
     }
 
@@ -111,8 +109,6 @@ public class SkyEngineKit {
         // 开始响铃并回复
         mCurrentCallSession.shouldStartRing();
         mCurrentCallSession.sendRingBack(targetId, room);
-
-
         return true;
     }
 
@@ -141,7 +137,6 @@ public class SkyEngineKit {
             }
             mCurrentCallSession.setCallState(EnumType.CallState.Idle);
         }
-
     }
 
     // 加入房间

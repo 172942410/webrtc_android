@@ -3,6 +3,7 @@ package com.dds.skywebrtc.engine.webrtc;
 import android.content.Context;
 import android.util.Log;
 
+import com.dds.skywebrtc.engine.DataChannelListener;
 import com.dds.skywebrtc.render.ProxyVideoSink;
 
 import org.webrtc.DataChannel;
@@ -18,6 +19,7 @@ import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SurfaceViewRenderer;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +42,9 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
     public SurfaceViewRenderer renderer;
     public ProxyVideoSink sink;
 
+    DataChannel dataChannel;//发生普通消息需要的
+    DataChannel.Init dataChannelInit;
+    DataChannelListener dataChannelListener;
 
     public Peer(PeerConnectionFactory factory, List<PeerConnection.IceServer> list, String userId, IPeerEvent event) {
         mFactory = factory;
@@ -49,7 +54,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
         queuedRemoteCandidates = new ArrayList<>();
         this.pc = createPeerConnection();
         Log.d("dds_test", "create Peer:" + mUserId);
-
+        createDataChannel("createDataChannel",pc);
     }
 
     public PeerConnection createPeerConnection() {
@@ -140,10 +145,14 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 
             @Override
             public void onFrameResolutionChanged(int videoWidth, int videoHeight, int rotation) {
-                Log.d(TAG, "createRender onFrameResolutionChanged");
+                Log.d(TAG, "createRender onFrameResolutionChanged videoWidth:"+videoWidth+",videoHeight:"+videoHeight+",rotation:"+rotation);
             }
         });
-        renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
+//        画幅被裁剪了；显示的太大了
+//        renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
+//        renderer.setEnableHardwareScaler(true);
+        renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+//        renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_BALANCED);
         renderer.setMirror(true);
         renderer.setZOrderMediaOverlay(isOverlay);
         sink = new ProxyVideoSink();
@@ -151,7 +160,6 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
         if (_remoteStream != null && _remoteStream.videoTracks.size() > 0) {
             _remoteStream.videoTracks.get(0).addSink(sink);
         }
-
     }
 
     // 关闭Peer
@@ -169,11 +177,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                 Log.e(TAG, "close: " + e);
 
             }
-
-
         }
-
-
     }
 
     //------------------------------Observer-------------------------------------
@@ -188,7 +192,6 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
         if (newState == PeerConnection.IceConnectionState.DISCONNECTED || newState == PeerConnection.IceConnectionState.FAILED) {
             mEvent.onDisconnected(mUserId);
         }
-
     }
 
     @Override
@@ -204,6 +207,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 
     @Override
     public void onIceCandidate(IceCandidate candidate) {
+        Log.d(TAG,"获取到 onIceCandidate :" + candidate);
         // 发送IceCandidate
         mEvent.onSendIceCandidate(mUserId, candidate);
     }
@@ -233,7 +237,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 
     @Override
     public void onDataChannel(DataChannel dataChannel) {
-        Log.i(TAG, "onDataChannel:");
+        Log.i(TAG, "onDataChannel:" + dataChannel);
     }
 
     @Override
@@ -255,7 +259,6 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
         final SessionDescription sdp = new SessionDescription(origSdp.type, sdpString);
         localSdp = sdp;
         setLocalDescription(sdp);
-
     }
 
     @Override
@@ -296,7 +299,6 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
             }
         }
 
-
     }
 
     @Override
@@ -320,8 +322,142 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                 }
                 queuedRemoteCandidates = null;
             }
-
         }
+//        createDataChannel("",pc);
+    }
+
+    /**
+     * 创建DataChannel
+     *
+     * @param socketId 用户id
+     * @return 数据通道
+     */
+    public DataChannel createDataChannel(String socketId, PeerConnection peerConnection) {
+        if (dataChannelInit == null) {
+            /**
+             DataChannel.Init 可配参数说明：
+             ordered：是否保证顺序传输；
+             maxRetransmitTimeMs：重传允许的最长时间；
+             maxRetransmits：重传允许的最大次数；
+             */
+            dataChannelInit = new DataChannel.Init();
+            dataChannelInit.ordered = true; // 消息的传递是否有序 true代表有序
+            dataChannelInit.negotiated = true; // 协商方式
+            dataChannelInit.id = 0; // 通道ID
+        }
+        if (dataChannel == null) {
+            dataChannel = peerConnection.createDataChannel("dataChannel", dataChannelInit);
+            //注册DataChannel的回调函数
+            dataChannel.registerObserver(new DataChannel.Observer() {
+                boolean isHeader = true;
+                String suffix = null;
+                int fileLength = 0;
+                long currentLength = 0;
+                boolean isFinish = false;
+                List<byte[]> queue = new ArrayList<>();
+
+                //
+                @Override
+                public void onBufferedAmountChange(long l) {
+                    Log.d(TAG,"onBufferedAmountChange:"+l);
+                }
+
+                //状态发生改变
+                @Override
+                public void onStateChange() {
+                    Log.d(TAG,"onStateChange:");
+                }
+
+                /**
+                 * 接收二进制消息时需要定义一个简单的header用于存放文件信息
+                 * 1.filename 文件名
+                 * 2.suffix  后缀名
+                 * 3.totalLength 文件总大小
+                 * @param buffer
+                 */
+                //接收消息
+                @Override
+                public void onMessage(DataChannel.Buffer buffer) {
+                    try {
+                        ByteBuffer data = buffer.data;
+                        byte[] bytes = new byte[data.capacity()];
+                        Log.e(TAG, "initDataChannel----->onMessage--->" + bytes.length);
+                        data.get(bytes);
+                        if (dataChannelListener != null) {
+                            if (buffer.binary) { //是二进制数据
+                                if (isHeader) {
+                                    isHeader = false;//为false时就不是第一次，只有第一次需要检测文件后缀
+                                    //检测文件后缀
+                                    byte[] headerPayload = new byte[200];
+                                    System.arraycopy(bytes, 0, headerPayload, 0, 200);
+//                                    String filePath = ByteUtil.getInstance().getStringFromByteArray(headerPayload);
+                                    byte[] lengthPayload = new byte[200];
+                                    System.arraycopy(bytes, 200, lengthPayload, 0, 20);
+//                                    String length = ByteUtil.getInstance().getStringFromByteArray(lengthPayload);
+//                                    Log.e(TAG, "initDataChannel----->onMessage--->filePath---->" + filePath);
+//                                    Log.e(TAG, "initDataChannel----->onMessage--->length---->" + length);
+//                                    suffix = FileUtils.getInstance().getFileSuffix(filePath);
+//                                    fileLength = Integer.parseInt(length) - 220;
+//                                    Log.e(TAG, "initDataChannel----->onMessage--->suffix---->" + suffix);
+                                }
+                                if (!isHeader) {
+                                    currentLength += bytes.length;
+                                    if ((currentLength - 220) >= fileLength) {
+                                        isFinish = true;
+                                    }
+                                    queue.add(bytes);
+                                    float progress = (currentLength / (float) fileLength) * 100;
+                                    dataChannelListener.onReceiveFileProgress(progress);
+                                }
+                                if (isFinish) {
+                                    String realPath = null;
+                                    queue.remove(0);
+//                                    realPath = FileUtils.getInstance().writeBytesToFile(context, suffix, queue);
+                                    if (realPath != null) {
+                                        Log.e(TAG, "initDataChannel----->onMessage--->realPath----> 执行了多少次");
+                                        dataChannelListener.onReceiveBinaryMessage(socketId, realPath);
+                                    }
+                                }
+                            } else {//不是二进制数据
+                                //此处接收的是非二进制数据
+                                String msg = new String(bytes);
+                                dataChannelListener.onReceiveMessage(socketId, msg);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+        return dataChannel;
+    }
+
+    /**
+     * 使用DataChannel发送普通消息
+     *
+     * @param message
+     */
+    public void sendMsg(String message) {
+        if(null != message) {
+            byte[] msg = message.getBytes();
+            sendMsg(msg,false);
+        }
+    }
+    public void sendMsg(byte[] message,boolean binary) {
+        if (dataChannel != null) {
+            if (message != null) {
+                DataChannel.Buffer buffer = new DataChannel.Buffer(ByteBuffer.wrap(message), binary);
+                boolean isSend =  dataChannel.send(buffer);
+                Log.d(TAG,"发送完成："+isSend);
+            }
+        }else{
+            Log.e(TAG,"发送消息异常");
+        }
+    }
+
+    void setDataChannelListener(DataChannelListener Listener){
+        dataChannelListener = Listener;
     }
 
     private MediaConstraints offerOrAnswerConstraint() {
@@ -336,7 +472,6 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
     // ----------------------------回调-----------------------------------
 
     public interface IPeerEvent {
-
 
         void onSendIceCandidate(String userId, IceCandidate candidate);
 

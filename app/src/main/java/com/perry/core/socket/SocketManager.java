@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.dds.skywebrtc.engine.DataChannelListener;
 import com.perry.App;
 import com.perry.core.voip.Consts;
 import com.perry.core.voip.VoipReceiver;
@@ -38,9 +39,20 @@ public class SocketManager implements IEvent {
     private String myId;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
+    DataChannelListener dataChannelListener;
 
     private SocketManager() {
 
+    }
+    //接受消息的监听
+    public void setDataChannelListener(DataChannelListener listener) {
+        dataChannelListener = listener;
+        handler.post(() -> {
+            CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
+            if (currentSession != null) {
+                currentSession.setDataChannelListener(listener);
+            }
+        });
     }
 
     private static class Holder {
@@ -241,7 +253,6 @@ public class SocketManager implements IEvent {
                 currentSession.onCancel(inviteId);
             }
         });
-
     }
 
     @Override
@@ -252,8 +263,6 @@ public class SocketManager implements IEvent {
                 currentSession.onRingBack(fromId);
             }
         });
-
-
     }
 
     @Override  // 加入房间
@@ -262,6 +271,7 @@ public class SocketManager implements IEvent {
             //自己进入了房间，然后开始发送offer
             CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
             if (currentSession != null) {
+                currentSession.setDataChannelListener(dataChannelListener);
                 currentSession.onJoinHome(myId, connections, roomSize);
             }
         });
@@ -273,6 +283,7 @@ public class SocketManager implements IEvent {
         handler.post(() -> {
             CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
             if (currentSession != null) {
+                currentSession.setDataChannelListener(dataChannelListener);
                 currentSession.newPeer(userId);
             }
         });
@@ -383,6 +394,24 @@ public class SocketManager implements IEvent {
             CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
             if (currentSession != null) {
                 currentSession.setOfferMap(map);
+            }
+        });
+    }
+
+//    @Override
+    public void sendMessage(byte[] message) {
+        handler.post(() -> {
+            CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
+            if (currentSession != null) {
+                currentSession.sendMessage(message,true);
+            }
+        });
+    }
+    public void sendMessage(String message) {
+        handler.post(() -> {
+            CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
+            if (currentSession != null) {
+                currentSession.sendMessage(message.getBytes(),false);
             }
         });
     }

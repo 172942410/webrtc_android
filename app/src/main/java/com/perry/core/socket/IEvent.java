@@ -49,4 +49,6 @@ public interface IEvent {
 
     // 测试的时候 加入房间后 需要 新加的接口
     void setOfferMap(Map map);
+    // 测试发送消息的时候添加的
+//    void sendMessage(byte[] message);
 }

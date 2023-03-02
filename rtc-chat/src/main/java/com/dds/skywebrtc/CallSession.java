@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
+import com.dds.skywebrtc.engine.DataChannelListener;
 import com.dds.skywebrtc.engine.EngineCallback;
 import com.dds.skywebrtc.engine.webrtc.WebRTCEngine;
 import com.dds.skywebrtc.inter.ISkyEvent;
@@ -253,13 +254,8 @@ public class CallSession implements EngineCallback {
                 if (sessionCallback != null && sessionCallback.get() != null) {
                     sessionCallback.get().didCreateLocalVideoTrack();
                 }
-
             }
-
-
         }));
-
-
     }
 
     // 新成员进入
@@ -537,8 +533,21 @@ public class CallSession implements EngineCallback {
         }
     }
 
+//    @Override
+    public void sendMessage(byte[]  message,boolean binary) {
+        executor.execute(() -> {
+            iEngine.sendMessage(message,binary);
+        });
+    }
+
     public void setOfferMap(Map map) {
         this.mapOffer = map;
+    }
+
+    public void setDataChannelListener(DataChannelListener listener) {
+        executor.execute(() -> {
+            iEngine.setDataChannelListener(listener);
+        });
     }
 
     public interface CallSessionCallback {

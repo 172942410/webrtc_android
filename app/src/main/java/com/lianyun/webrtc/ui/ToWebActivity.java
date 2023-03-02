@@ -12,12 +12,15 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.Toolbar;
 
+import com.dds.skywebrtc.engine.DataChannelListener;
 import com.lianyun.webrtc.ui.adapter.AutoAdapter;
 import com.perry.App;
 import com.perry.core.MainActivity;
@@ -51,6 +54,10 @@ public class ToWebActivity extends BaseActivity implements IUserState {
     private Button button8;
     SharedPreferences sharedPreferences;
     TextView tvInfo;
+    EditText etMessage;
+    AppCompatButton buttonSend;
+    SocketManager socketManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +65,7 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 
         initView();
 
-        if (SocketManager.getInstance().getUserState() == 1) {
+        if (socketManager.getUserState() == 1) {
             startActivity(new Intent(this, MainActivity.class));
             finish();
         }
@@ -72,6 +79,26 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         etAdd = findViewById(R.id.et_add);
         tvInfo = findViewById(R.id.tv_info);
         button8 = findViewById(R.id.button8);
+        etMessage = findViewById(R.id.et_message);
+        buttonSend = findViewById(R.id.button_send);
+
+        socketManager = SocketManager.getInstance();
+        socketManager.setDataChannelListener(new DataChannelListener() {
+            @Override
+            public void onReceiveBinaryMessage(String socketId, String message) {
+                Log.d(TAG,"onReceiveBinaryMessage socketId:"+socketId+",message:"+message);
+            }
+
+            @Override
+            public void onReceiveMessage(String socketId, String message) {
+                Log.d(TAG,"onReceiveMessage socketId:"+socketId+",message:"+message);
+            }
+
+            @Override
+            public void onReceiveFileProgress(float progress) {
+                Log.d(TAG,"onReceiveFileProgress:"+progress);
+            }
+        });
         Urls.URL_HOST = sharedPreferences.getString("host",Urls.URL_HOST);
         etAdd.setText(Urls.URL_HOST);
         tvInfo.setText("当前服务器地址:(" + Urls.URL_HOST + ")");
@@ -150,6 +177,19 @@ public class ToWebActivity extends BaseActivity implements IUserState {
                 return false;
             }
         });
+
+        buttonSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String message = etMessage.getText().toString().trim();
+                if(TextUtils.isEmpty(message)){
+                    Toast.makeText(ToWebActivity.this, "发生内容不能为空", Toast.LENGTH_SHORT).show();
+                }else{
+                    //TODO 发送文本消息
+                    socketManager.sendMessage(message);
+                }
+            }
+        });
     }
 
     public void java(View view) {
@@ -163,12 +203,12 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         // 设置用户名
         App.getInstance().setUsername(username);
 //        // 添加登录回调
-        SocketManager.getInstance().addUserStateCallback(this);
+        socketManager.addUserStateCallback(this);
 //        // 连接socket:登录
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
         String localPeerId = "windows";
         String remotePeerId = "hololens";
-        SocketManager.getInstance().connectHttp(Urls.URL_HOST, localPeerId, remotePeerId);
+        socketManager.connectHttp(Urls.URL_HOST, localPeerId, remotePeerId);
 //        windows hololens
 //        CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
     }
@@ -269,12 +309,12 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         // 设置用户名
         App.getInstance().setUsername(username);
 //        // 添加登录回调
-        SocketManager.getInstance().addUserStateCallback(this);
+        socketManager.addUserStateCallback(this);
 //        // 连接socket:登录
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
         String localPeerId = "hololens";
         String remotePeerId = "windows";
-        SocketManager.getInstance().connectHttp(Urls.URL_HOST, localPeerId,remotePeerId);
+        socketManager.connectHttp(Urls.URL_HOST, localPeerId,remotePeerId);
 //        windows hololens
         CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
     }

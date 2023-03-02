@@ -3,6 +3,7 @@ package com.dds.skywebrtc;
 import android.util.Log;
 import android.view.View;
 
+import com.dds.skywebrtc.engine.DataChannelListener;
 import com.dds.skywebrtc.engine.EngineCallback;
 import com.dds.skywebrtc.engine.IEngine;
 
@@ -191,6 +192,22 @@ public class AVEngine implements IEngine {
         }
          Log.d(TAG,"release");
         iEngine.release();
+    }
+
+    @Override
+    public void sendMessage(byte[]  message, boolean binary) {
+        if (iEngine == null) {
+            return;
+        }
+        iEngine.sendMessage(message,binary);
+    }
+
+    @Override
+    public void setDataChannelListener(DataChannelListener listener) {
+        if (iEngine == null) {
+            return;
+        }
+        iEngine.setDataChannelListener(listener);
     }
 
 }

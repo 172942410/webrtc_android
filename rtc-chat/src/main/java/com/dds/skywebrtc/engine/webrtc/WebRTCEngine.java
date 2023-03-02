@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.dds.skywebrtc.EnumType;
+import com.dds.skywebrtc.engine.DataChannelListener;
 import com.dds.skywebrtc.engine.EngineCallback;
 import com.dds.skywebrtc.engine.IEngine;
 import com.dds.skywebrtc.render.ProxyVideoSink;
@@ -61,7 +62,6 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     private SurfaceTextureHelper surfaceTextureHelper;
     private SurfaceViewRenderer localRenderer;
 
-
     private static final String VIDEO_TRACK_ID = "ARDAMSv0";
     private static final String AUDIO_TRACK_ID = "ARDAMSa0";
     public static final String VIDEO_CODEC_H264 = "H264";
@@ -80,6 +80,8 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     private Context mContext;
     private AudioManager audioManager;
     private boolean isSpeakerOn = true;
+
+    DataChannelListener dataChannelListener;
 
     public WebRTCEngine(boolean mIsAudioOnly, Context mContext) {
         this.mIsAudioOnly = mIsAudioOnly;
@@ -111,6 +113,9 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         for (String id : userIds) {
             // create Peer
             Peer peer = new Peer(_factory, iceServers, id, this);
+            if(dataChannelListener != null) {
+                peer.setDataChannelListener(dataChannelListener);
+            }
             peer.setOffer(false);
             // add localStream
             peer.addLocalStream(_localStream);
@@ -140,6 +145,9 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     public void userIn(String userId) {
         // create Peer
         Peer peer = new Peer(_factory, iceServers, userId, this);
+        if(dataChannelListener != null) {
+            peer.setDataChannelListener(dataChannelListener);
+        }
         peer.setOffer(true);
         // add localStream
         peer.addLocalStream(_localStream);
@@ -233,8 +241,6 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
                 peers.clear();
             }
         }
-
-
     }
 
     @Override
@@ -290,8 +296,6 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             localRenderer.release();
             localRenderer = null;
         }
-
-
     }
 
     @Override
@@ -316,9 +320,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (peer.renderer == null) {
             peer.createRender(mRootEglBase, mContext, isOverlay);
         }
-
         return peer.renderer;
-
     }
 
     @Override
@@ -449,22 +451,33 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             }
             peers.clear();
         }
-
-
         // 停止预览
         stopPreview();
-
         if (_factory != null) {
             _factory.dispose();
             _factory = null;
         }
-
         if (mRootEglBase != null) {
             mRootEglBase.release();
             mRootEglBase = null;
         }
+    }
 
+    @Override
+    public void sendMessage(byte[] message,boolean binary) {
+        for(Peer peer : peers.values()){
+            peer.sendMsg(message,binary);
+        }
+    }
 
+    @Override
+    public void setDataChannelListener(DataChannelListener Listener){
+        if(dataChannelListener == null) {
+            dataChannelListener = Listener;
+        }
+        for(Peer peer : peers.values()){
+            peer.setDataChannelListener(Listener);
+        }
     }
 
     // -----------------------------其他方法--------------------------------
@@ -543,7 +556,6 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             captureAndroid.initialize(surfaceTextureHelper, mContext, videoSource.getCapturerObserver());
             captureAndroid.startCapture(VIDEO_RESOLUTION_WIDTH, VIDEO_RESOLUTION_HEIGHT, FPS);
 
-
             VideoTrack _localVideoTrack = _factory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
             _localStream.addTrack(_localVideoTrack);
         }
@@ -589,18 +601,15 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
                 }
             }
         }
-
         // Front facing camera not found, try something else
         for (String deviceName : deviceNames) {
             if (!enumerator.isFrontFacing(deviceName)) {
                 VideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
-
                 if (videoCapturer != null) {
                     return videoCapturer;
                 }
             }
         }
-
         return null;
     }
 
@@ -648,7 +657,6 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (mCallback != null) {
             mCallback.onSendIceCandidate(userId, candidate);
         }
-
     }
 
     @Override

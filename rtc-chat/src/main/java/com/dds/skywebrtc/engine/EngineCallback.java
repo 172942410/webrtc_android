@@ -40,4 +40,6 @@ public interface EngineCallback {
 
     void onDisconnected(String userId);
 
+    //测试webRTC发送消息的时候添加的方法
+//    void sendMessage(byte[]  message,boolean binary);
 }

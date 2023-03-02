@@ -101,7 +101,6 @@ public class FloatingVoipService extends Service {
             stopSelf();
         }
         resumeActivityIntent = new Intent(this, CallSingleActivity.class);
-        resumeActivityIntent = new Intent(this, CallSingleActivity.class);
         resumeActivityIntent.putExtra(CallSingleActivity.EXTRA_FROM_FLOATING_VIEW, true);
         resumeActivityIntent.putExtra(CallSingleActivity.EXTRA_MO, intent.getBooleanExtra(CallSingleActivity.EXTRA_MO, false));
         resumeActivityIntent.putExtra(CallSingleActivity.EXTRA_AUDIO_ONLY, intent.getBooleanExtra(CallSingleActivity.EXTRA_AUDIO_ONLY, false));
