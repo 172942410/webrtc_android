@@ -1,0 +1,8 @@
+<resources>
+
+    <dimen name="item_item_padding">5dp</dimen>
+    <dimen name="item_re_padding">5dp</dimen>
+    <dimen name="item_text_small_10">10dp</dimen>
+    <dimen name="message_size_small">8dp</dimen>
+
+</resources>

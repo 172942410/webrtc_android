@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -16,12 +18,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.dds.skywebrtc.engine.DataChannelListener;
 import com.lianyun.webrtc.ui.adapter.AutoAdapter;
+import com.lianyun.webrtc.ui.adapter.MessageAdapter;
 import com.perry.App;
 import com.perry.core.MainActivity;
 import com.perry.core.base.BaseActivity;
@@ -57,7 +63,17 @@ public class ToWebActivity extends BaseActivity implements IUserState {
     EditText etMessage;
     AppCompatButton buttonSend;
     SocketManager socketManager;
-
+    RecyclerView recyclerView;
+    MessageAdapter messageAdapter;
+    Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(@NonNull Message msg) {
+            if(msg.what == 0){
+                messageAdapter.notifyDataSetChanged();
+            }
+            return false;
+        }
+    });
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,22 +97,32 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         button8 = findViewById(R.id.button8);
         etMessage = findViewById(R.id.et_message);
         buttonSend = findViewById(R.id.button_send);
+        recyclerView = findViewById(R.id.recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(ToWebActivity.this));
+        messageAdapter = new MessageAdapter(ToWebActivity.this);
+        recyclerView.setAdapter(messageAdapter);
 
         socketManager = SocketManager.getInstance();
         socketManager.setDataChannelListener(new DataChannelListener() {
             @Override
             public void onReceiveBinaryMessage(String socketId, String message) {
                 Log.d(TAG,"onReceiveBinaryMessage socketId:"+socketId+",message:"+message);
+                messageAdapter.addItemDataPath(message);
+                handler.sendEmptyMessage(0);
             }
 
             @Override
             public void onReceiveMessage(String socketId, String message) {
                 Log.d(TAG,"onReceiveMessage socketId:"+socketId+",message:"+message);
+                messageAdapter.addItemData(message);
+                handler.sendEmptyMessage(0);
             }
 
             @Override
             public void onReceiveFileProgress(float progress) {
-                Log.d(TAG,"onReceiveFileProgress:"+progress);
+                Log.d(TAG,"onReceiveFileProgress:" + progress);
+                messageAdapter.showProgress(progress);
+                handler.sendEmptyMessage(0);
             }
         });
         Urls.URL_HOST = sharedPreferences.getString("host",Urls.URL_HOST);

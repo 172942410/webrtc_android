@@ -4,6 +4,12 @@
     <color name="colorPrimaryDark">#1b82d2</color>   <!--status bar-->
     <color name="colorAccent">#1b82d2</color>
 
-
     <color name="av_bg_call_black">#281f1d</color>
+
+    <color name="blue_3cf">#33ccff</color>
+    <color name="gray_1a">#1a1a1a</color>
+    <color name="gray_333">#333333</color>
+    <color name="black_bg">#000000</color>
+    <color name="gray_999">#999999</color>
+
 </resources>

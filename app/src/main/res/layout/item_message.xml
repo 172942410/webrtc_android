@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fitsSystemWindows="true"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/item_item_padding"
+    android:paddingEnd="@dimen/item_item_padding"
+    android:paddingTop="0dp"
+    android:paddingBottom="0dp"
+    android:background="@color/black_bg"
+    android:id="@+id/ll_item"
+    >
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="@dimen/item_re_padding"
+        android:paddingTop="1dp"
+        android:paddingBottom="1dp"
+        >
+        <TextView
+            android:id="@+id/item_log_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:text="2022年12月12日15:38:23"
+            android:textColor="@color/gray_999"
+            android:textSize="@dimen/message_size_small" />
+
+        <TextView
+            android:id="@+id/item_log_tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="d/MainActivity"
+            android:textSize="@dimen/message_size_small"
+            android:textColor="@color/gray_999"
+            android:lines="1"
+            android:gravity="center"
+            android:layout_toRightOf="@+id/item_log_time"
+            android:paddingStart="5dp"
+            />
+        <TextView
+            android:id="@+id/item_log_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="测试的log信息打印，测试的log信息打印，测试的log信息打印，测试的log信息打印"
+            android:textSize="@dimen/item_text_small_10"
+            android:textColor="@color/blue_3cf"
+            android:layout_below="@+id/item_log_time"
+            />
+    </RelativeLayout>
+</LinearLayout>
