@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> <!-- 悬浮窗显示 -->
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -31,7 +32,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
-        tools:ignore="UnusedAttribute">
+        tools:ignore="UnusedAttribute"
+        android:requestLegacyExternalStorage="true"
+        >
 
         <activity
             android:name="com.lianyun.webrtc.ui.ToWebActivity"
@@ -86,6 +89,17 @@
             android:name="com.perry.core.voip.FloatingVoipService"
             android:enabled="true"
             android:exported="true" />
+        <!-- 应用共享Provider -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
     </application>
 
 </manifest>

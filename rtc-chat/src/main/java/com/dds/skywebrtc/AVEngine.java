@@ -195,11 +195,11 @@ public class AVEngine implements IEngine {
     }
 
     @Override
-    public void sendMessage(byte[]  message, boolean binary) {
+    public boolean sendMessage(byte[]  message, boolean binary) {
         if (iEngine == null) {
-            return;
+            return false;
         }
-        iEngine.sendMessage(message,binary);
+        return iEngine.sendMessage(message,binary);
     }
 
     @Override

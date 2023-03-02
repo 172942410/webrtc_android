@@ -69,23 +69,36 @@
                 />
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
         <EditText
             android:id="@+id/et_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="请输入要发送的内容"
-            android:layout_weight="1"
             />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            >
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_send_camera"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:text="打开相机"
+                />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_send_image"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:text="发送图片"
+                />
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button_send"
-                android:layout_width="match_parent"
+                android:layout_width="120dp"
                 android:layout_height="wrap_content"
                 android:text="发送"
-                android:layout_weight="4"
+                android:layout_marginStart="10dp"
                 />
         </LinearLayout>
         <androidx.recyclerview.widget.RecyclerView

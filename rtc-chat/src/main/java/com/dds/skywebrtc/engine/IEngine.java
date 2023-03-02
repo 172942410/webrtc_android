@@ -119,7 +119,7 @@ public interface IEngine {
     void release();
 
     //测试webRTC发送消息的时候添加
-    void sendMessage(byte[]  message,boolean binary);
+    boolean sendMessage(byte[]  message,boolean binary);
 
     void setDataChannelListener(DataChannelListener listener);
 }

@@ -1,5 +1,6 @@
 package com.lianyun.webrtc.bean;
 
+import android.net.Uri;
 import android.text.TextUtils;
 
 public class MessageBean {
@@ -8,6 +9,7 @@ public class MessageBean {
     public String type;
     public String tag;
     public String content;
+    public Uri uri;
 
     private final String _TYPE = " : type:";
     private final String _TAG = " tag:";

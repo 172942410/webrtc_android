@@ -27,7 +27,7 @@ android {
         }
 
         debug {
-            applicationIdSuffix ".debug"
+//            applicationIdSuffix ".debug"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -61,4 +61,7 @@ dependencies {
     api 'com.tapadoo.android:alerter:6.2.1'
     implementation "io.reactivex.rxjava3:rxandroid:$rxandroidVersion"
     implementation "io.reactivex.rxjava3:rxjava:$rxjavaVersion"
+//    一个线程池用到了这个
+    api("com.google.guava:guava:30.1-android")
+//    implementation 'com.github.bumptech.glide:glide:4.13.2'
 }

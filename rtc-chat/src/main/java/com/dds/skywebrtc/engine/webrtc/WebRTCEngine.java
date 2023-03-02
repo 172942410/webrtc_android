@@ -464,10 +464,15 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     }
 
     @Override
-    public void sendMessage(byte[] message,boolean binary) {
+    public boolean sendMessage(byte[] message,boolean binary) {
+        boolean isSend = false;
         for(Peer peer : peers.values()){
-            peer.sendMsg(message,binary);
+            isSend = peer.sendMsg(message,binary);
+            if(!isSend){
+                return false;
+            }
         }
+        return isSend;
     }
 
     @Override

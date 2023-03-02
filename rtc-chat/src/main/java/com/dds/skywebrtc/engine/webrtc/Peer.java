@@ -438,22 +438,25 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
      *
      * @param message
      */
-    public void sendMsg(String message) {
+    public boolean sendMsg(String message) {
         if(null != message) {
             byte[] msg = message.getBytes();
-            sendMsg(msg,false);
+            return sendMsg(msg,false);
         }
+        return false;
     }
-    public void sendMsg(byte[] message,boolean binary) {
+    public boolean sendMsg(byte[] message,boolean binary) {
         if (dataChannel != null) {
             if (message != null) {
                 DataChannel.Buffer buffer = new DataChannel.Buffer(ByteBuffer.wrap(message), binary);
                 boolean isSend =  dataChannel.send(buffer);
                 Log.d(TAG,"发送完成："+isSend);
+                return isSend;
             }
         }else{
             Log.e(TAG,"发送消息异常");
         }
+        return false;
     }
 
     void setDataChannelListener(DataChannelListener Listener){

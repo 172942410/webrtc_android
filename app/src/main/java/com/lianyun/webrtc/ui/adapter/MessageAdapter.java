@@ -1,7 +1,7 @@
 package com.lianyun.webrtc.ui.adapter;
 
 import android.app.Activity;
-import android.graphics.Color;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.lianyun.webrtc.R;
@@ -105,13 +106,25 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
 
     }
 
+    public void addItemDataUri(Uri uri) {
+        if (uri == null) {
+            return;
+        }
+        if (list == null) {
+            list = new ArrayList<>();
+        }
+        MessageBean messageBean = new MessageBean("");
+        messageBean.uri = uri;
+        list.add(messageBean);
+    }
+
     class ItemHolder extends RecyclerView.ViewHolder {
         View view;
         int position;
         TextView tvTime;
         TextView tvTag;
         TextView tvMessage;
-
+        AppCompatImageView imageView;
         MessageBean messageBean;
 
         public ItemHolder(@NonNull View itemView) {
@@ -120,6 +133,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
             tvTime = view.findViewById(R.id.item_log_time);
             tvTag = view.findViewById(R.id.item_log_tag);
             tvMessage = view.findViewById(R.id.item_log_message);
+            imageView = view.findViewById(R.id.iv_image);
         }
 
         private void setViewHolder(MessageBean messageBean, int position) {
@@ -144,12 +158,19 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
                 }
                 tvTag.setText(messageBean.type + " / " + messageBean.tag);
             }
-            if("e".equals(messageBean.type) || "E".equals(messageBean.type) || messageBean.content.contains("异常")){
-                tvMessage.setTextColor(Color.RED);
-            }else{
-                tvMessage.setTextColor(activity.getColor(R.color.blue_3cf));
-            }
+//            if("e".equals(messageBean.type) || "E".equals(messageBean.type) || messageBean.content.contains("异常")){
+//                tvMessage.setTextColor(Color.RED);
+//            }else{
+//                tvMessage.setTextColor(activity.getColor(R.color.blue_3cf));
+//            }
             tvMessage.setText(messageBean.content);
+            if(messageBean.uri != null){
+                imageView.setVisibility(View.VISIBLE);
+                imageView.setImageURI(messageBean.uri);
+            }else{
+                imageView.setVisibility(View.GONE);
+            }
+
             if (choosepos == position) {
                 view.setBackgroundResource(R.color.gray_1a);
             } else {

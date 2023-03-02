@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--    物理路径相当于Environment.getExternalStorageDirectory() + /path/-->
+    <external-path name="external_path_root" path="."/>
+<!--    <external-path name="lxd_path" path="app_lxd_face" />-->
+    <!--    物理路径相当于Context.getExternalCacheDir() + /path/-->
+<!--    <external-cache-path name="lxd_cache" path="app_lxd_face" />-->
+<!--    <external-files-path name="lxd" path="app_lxd_face" />-->
+</resources>
