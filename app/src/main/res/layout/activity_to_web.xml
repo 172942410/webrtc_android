@@ -86,6 +86,7 @@
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
                 android:text="打开相机"
+                android:visibility="gone"
                 />
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button_send_image"

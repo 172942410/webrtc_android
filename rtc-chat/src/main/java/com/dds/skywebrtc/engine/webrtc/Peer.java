@@ -385,39 +385,40 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                         data.get(bytes);
                         if (dataChannelListener != null) {
                             if (buffer.binary) { //是二进制数据
-                                if (isHeader) {
-                                    isHeader = false;//为false时就不是第一次，只有第一次需要检测文件后缀
-                                    //检测文件后缀
-                                    byte[] headerPayload = new byte[200];
-                                    System.arraycopy(bytes, 0, headerPayload, 0, 200);
-//                                    String filePath = ByteUtil.getInstance().getStringFromByteArray(headerPayload);
-                                    byte[] lengthPayload = new byte[200];
-                                    System.arraycopy(bytes, 200, lengthPayload, 0, 20);
-//                                    String length = ByteUtil.getInstance().getStringFromByteArray(lengthPayload);
-//                                    Log.e(TAG, "initDataChannel----->onMessage--->filePath---->" + filePath);
-//                                    Log.e(TAG, "initDataChannel----->onMessage--->length---->" + length);
-//                                    suffix = FileUtils.getInstance().getFileSuffix(filePath);
-//                                    fileLength = Integer.parseInt(length) - 220;
-//                                    Log.e(TAG, "initDataChannel----->onMessage--->suffix---->" + suffix);
-                                }
-                                if (!isHeader) {
-                                    currentLength += bytes.length;
-                                    if ((currentLength - 220) >= fileLength) {
-                                        isFinish = true;
-                                    }
-                                    queue.add(bytes);
-                                    float progress = (currentLength / (float) fileLength) * 100;
-                                    dataChannelListener.onReceiveFileProgress(progress);
-                                }
-                                if (isFinish) {
-                                    String realPath = null;
-                                    queue.remove(0);
-//                                    realPath = FileUtils.getInstance().writeBytesToFile(context, suffix, queue);
-                                    if (realPath != null) {
-                                        Log.e(TAG, "initDataChannel----->onMessage--->realPath----> 执行了多少次");
-                                        dataChannelListener.onReceiveBinaryMessage(socketId, realPath);
-                                    }
-                                }
+                                dataChannelListener.onReceiveBinaryMessage(socketId, "",bytes);
+//                                if (isHeader) {
+//                                    isHeader = false;//为false时就不是第一次，只有第一次需要检测文件后缀
+//                                    //检测文件后缀
+//                                    byte[] headerPayload = new byte[200];
+//                                    System.arraycopy(bytes, 0, headerPayload, 0, 200);
+////                                    String filePath = ByteUtil.getInstance().getStringFromByteArray(headerPayload);
+//                                    byte[] lengthPayload = new byte[200];
+//                                    System.arraycopy(bytes, 200, lengthPayload, 0, 20);
+////                                    String length = ByteUtil.getInstance().getStringFromByteArray(lengthPayload);
+////                                    Log.e(TAG, "initDataChannel----->onMessage--->filePath---->" + filePath);
+////                                    Log.e(TAG, "initDataChannel----->onMessage--->length---->" + length);
+////                                    suffix = FileUtils.getInstance().getFileSuffix(filePath);
+////                                    fileLength = Integer.parseInt(length) - 220;
+////                                    Log.e(TAG, "initDataChannel----->onMessage--->suffix---->" + suffix);
+//                                }
+//                                if (!isHeader) {
+//                                    currentLength += bytes.length;
+//                                    if ((currentLength - 220) >= fileLength) {
+//                                        isFinish = true;
+//                                    }
+//                                    queue.add(bytes);
+//                                    float progress = (currentLength / (float) fileLength) * 100;
+//                                    dataChannelListener.onReceiveFileProgress(progress);
+//                                }
+//                                if (isFinish) {
+//                                    String realPath = null;
+//                                    queue.remove(0);
+////                                    realPath = FileUtils.getInstance().writeBytesToFile(context, suffix, queue);
+//                                    if (realPath != null) {
+//                                        Log.e(TAG, "initDataChannel----->onMessage--->realPath----> 执行了多少次");
+////                                        dataChannelListener.onReceiveBinaryMessage(socketId, realPath);
+//                                    }
+//                                }
                             } else {//不是二进制数据
                                 //此处接收的是非二进制数据
                                 String msg = new String(bytes);

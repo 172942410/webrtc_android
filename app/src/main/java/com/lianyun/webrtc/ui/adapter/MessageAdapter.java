@@ -1,6 +1,7 @@
 package com.lianyun.webrtc.ui.adapter;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -118,6 +119,18 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
         list.add(messageBean);
     }
 
+    public void addItemBitmap(Bitmap bitmap) {
+        if (bitmap == null) {
+            return;
+        }
+        if (list == null) {
+            list = new ArrayList<>();
+        }
+        MessageBean messageBean = new MessageBean("");
+        messageBean.bitmap = bitmap;
+        list.add(messageBean);
+    }
+
     class ItemHolder extends RecyclerView.ViewHolder {
         View view;
         int position;
@@ -167,6 +180,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
             if(messageBean.uri != null){
                 imageView.setVisibility(View.VISIBLE);
                 imageView.setImageURI(messageBean.uri);
+            }else{
+                imageView.setVisibility(View.GONE);
+            }
+            if(messageBean.bitmap != null){
+                imageView.setVisibility(View.VISIBLE);
+                imageView.setImageBitmap(messageBean.bitmap);
             }else{
                 imageView.setVisibility(View.GONE);
             }

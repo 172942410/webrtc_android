@@ -5,7 +5,7 @@ package com.dds.skywebrtc.engine;
  */
 public interface DataChannelListener {
 
-    void onReceiveBinaryMessage(String socketId,String message);
+    void onReceiveBinaryMessage(String socketId,String path, byte[] data);
 
     void onReceiveMessage(String socketId,String message);
 

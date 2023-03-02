@@ -3,6 +3,8 @@ package com.lianyun.webrtc.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,6 +34,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.dds.skywebrtc.engine.DataChannelListener;
 import com.lianyun.webrtc.ui.adapter.AutoAdapter;
 import com.lianyun.webrtc.ui.adapter.MessageAdapter;
+import com.lianyun.webrtc.utils.Base64Util;
 import com.perry.App;
 import com.perry.core.MainActivity;
 import com.perry.core.base.BaseActivity;
@@ -45,6 +48,7 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,6 +80,8 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         public boolean handleMessage(@NonNull Message msg) {
             if(msg.what == 0){
                 messageAdapter.notifyDataSetChanged();
+                recyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
+
             }
             return false;
         }
@@ -115,9 +121,10 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         socketManager = SocketManager.getInstance();
         socketManager.setDataChannelListener(new DataChannelListener() {
             @Override
-            public void onReceiveBinaryMessage(String socketId, String message) {
+            public void onReceiveBinaryMessage(String socketId, String message,byte[] data) {
                 Log.d(TAG,"onReceiveBinaryMessage socketId:"+socketId+",message:"+message);
-                messageAdapter.addItemDataPath(message);
+                Bitmap bitmap = Base64Util.base64ToBitmap(data);
+                messageAdapter.addItemBitmap(bitmap);
                 handler.sendEmptyMessage(0);
             }
 
@@ -324,9 +331,17 @@ public class ToWebActivity extends BaseActivity implements IUserState {
                 return;
             }
             Uri uri = data.getData();
-//        Glide.with(this).load(data.getData()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).into(helpBinding.ivHelpImageFirst);
             messageAdapter.addItemDataUri(uri);
             handler.sendEmptyMessage(0);
+            // 这里实际要发送出去的
+            try {
+                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
+                byte[]  messageByte = Base64Util.bitmapToBase64(bitmap);
+                socketManager.sendMessage(messageByte);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
         }else if(requestCode == TAKE_CAMERA){
 //            curImgPath
 //            Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(curImgPath));

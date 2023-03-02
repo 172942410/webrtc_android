@@ -1,5 +1,6 @@
 package com.lianyun.webrtc.bean;
 
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.text.TextUtils;
 
@@ -10,6 +11,7 @@ public class MessageBean {
     public String tag;
     public String content;
     public Uri uri;
+    public Bitmap bitmap;
 
     private final String _TYPE = " : type:";
     private final String _TAG = " tag:";
