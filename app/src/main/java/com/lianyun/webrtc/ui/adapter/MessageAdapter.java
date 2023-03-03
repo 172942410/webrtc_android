@@ -198,6 +198,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
             this.messageBean = messageBean;
             this.position = position;
 //            android:layoutDirection="rtl"
+            if (choosepos == position) {
+                view.setBackgroundResource(R.color.gray_1a);
+            } else {
+                view.setBackgroundResource(R.drawable.bg_item_left);
+            }
             if (messageBean.type == -1) {
                 view.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
                 //右边
@@ -218,6 +223,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
                 }
                 tvTag.setVisibility(View.INVISIBLE);
             } else if (messageBean.type == 1) {
+                view.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
                 //左边显示
                 if (messageBean.bitmap != null) {
                     imageView.setVisibility(View.VISIBLE);
@@ -242,11 +248,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
                 }
             }
             tvMessage.setText(messageBean.content);
-            if (choosepos == position) {
-                view.setBackgroundResource(R.color.gray_1a);
-            } else {
-                view.setBackgroundResource(R.drawable.bg_item_left);
-            }
+
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
