@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,26 +89,66 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
         }
     }
 
-    public void addItemData(String next) {
-        if (TextUtils.isEmpty(next)) {
+    public void addItemRightString(String message) {
+        addItemString(message, -1);
+    }
+
+    /**
+     * 还需要解析 发送时间
+     *
+     * @param message
+     */
+    public void addItemLeftString(String message) {
+        addItemString(message, 1);
+    }
+
+    public void addItemString(String message, int type) {
+        if (TextUtils.isEmpty(message)) {
             return;
         }
         if (list == null) {
             list = new ArrayList<>();
         }
-        list.add(new MessageBean(next));
+        MessageBean messageBean = new MessageBean(message);
+        messageBean.type = type;
+        if (type == -1) {
+            messageBean.sendTime = System.currentTimeMillis();
+        } else if (type == 1) {
+            String msgInfo[] = message.split("\\|");
+            if (msgInfo.length == 2) {
+                try {
+                    messageBean.sendTime = Long.parseLong(msgInfo[0]);
+                    messageBean.content = msgInfo[1];
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "解析发送时间时异常错误：" + message);
+                }
+            }
+            messageBean.receiveTime = System.currentTimeMillis();
+        }
+        list.add(messageBean);
 //        notifyDataSetChanged();
     }
+
     //图片链接地址
     public void addItemDataPath(String message) {
 
     }
+
     //显示文件下载的进度
     public void showProgress(float progress) {
 
     }
 
-    public void addItemDataUri(Uri uri) {
+    public void addItemLeftDataUri(Uri uri) {
+        addItemDataUri(uri, 1);
+    }
+
+    public void addItemRightDataUri(Uri uri) {
+        addItemDataUri(uri, -1);
+    }
+
+    public void addItemDataUri(Uri uri, int type) {
         if (uri == null) {
             return;
         }
@@ -116,6 +157,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
         }
         MessageBean messageBean = new MessageBean("");
         messageBean.uri = uri;
+        messageBean.type = type;
+        messageBean.sendTime = System.currentTimeMillis();
         list.add(messageBean);
     }
 
@@ -128,6 +171,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
         }
         MessageBean messageBean = new MessageBean("");
         messageBean.bitmap = bitmap;
+        messageBean.type = 1;
+        messageBean.receiveTime = System.currentTimeMillis();
         list.add(messageBean);
     }
 
@@ -152,44 +197,51 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ItemHold
         private void setViewHolder(MessageBean messageBean, int position) {
             this.messageBean = messageBean;
             this.position = position;
-            if(TextUtils.isEmpty(messageBean.time)){
-                tvTime.setVisibility(View.GONE);
-            }else{
-                tvTime.setVisibility(View.VISIBLE);
-                tvTime.setText(messageBean.time);
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                    tvTime.setFocusedByDefault(true);
-//                }
-            }
-
-            if(TextUtils.isEmpty(messageBean.type) && TextUtils.isEmpty(messageBean.tag)){
-                tvTag.setVisibility(View.GONE);
-            }else{
-                tvTag.setVisibility(View.VISIBLE);
-                if(!TextUtils.isEmpty(messageBean.type)){
-                    messageBean.type = messageBean.type.toUpperCase();
+//            android:layoutDirection="rtl"
+            if (messageBean.type == -1) {
+                view.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+                //右边
+                if (messageBean.uri != null) {
+                    imageView.setVisibility(View.VISIBLE);
+                    imageView.setImageURI(messageBean.uri);
+                } else if (messageBean.bitmap != null) {
+                    imageView.setVisibility(View.VISIBLE);
+                    imageView.setImageBitmap(messageBean.bitmap);
+                } else {
+                    imageView.setVisibility(View.GONE);
                 }
-                tvTag.setText(messageBean.type + " / " + messageBean.tag);
+                if (messageBean.sendTime > 0) {
+                    tvTime.setVisibility(View.VISIBLE);
+                    tvTime.setText("发送时间：" + getFormatTime(messageBean.sendTime));
+                } else {
+                    tvTime.setVisibility(View.INVISIBLE);
+                }
+                tvTag.setVisibility(View.INVISIBLE);
+            } else if (messageBean.type == 1) {
+                //左边显示
+                if (messageBean.bitmap != null) {
+                    imageView.setVisibility(View.VISIBLE);
+                    imageView.setImageBitmap(messageBean.bitmap);
+                } else if (messageBean.uri != null) {
+                    imageView.setVisibility(View.VISIBLE);
+                    imageView.setImageURI(messageBean.uri);
+                } else {
+                    imageView.setVisibility(View.GONE);
+                }
+                if (messageBean.sendTime > 0) {
+                    tvTime.setVisibility(View.VISIBLE);
+                    tvTime.setText("发送时间：" + getFormatTime(messageBean.sendTime));
+                } else {
+                    tvTime.setVisibility(View.INVISIBLE);
+                }
+                if (messageBean.receiveTime > 0) {
+                    tvTag.setVisibility(View.VISIBLE);
+                    tvTag.setText("接收时间：" + getFormatTime(messageBean.receiveTime));
+                } else {
+                    tvTag.setVisibility(View.INVISIBLE);
+                }
             }
-//            if("e".equals(messageBean.type) || "E".equals(messageBean.type) || messageBean.content.contains("异常")){
-//                tvMessage.setTextColor(Color.RED);
-//            }else{
-//                tvMessage.setTextColor(activity.getColor(R.color.blue_3cf));
-//            }
             tvMessage.setText(messageBean.content);
-            if(messageBean.uri != null){
-                imageView.setVisibility(View.VISIBLE);
-                imageView.setImageURI(messageBean.uri);
-            }else{
-                imageView.setVisibility(View.GONE);
-            }
-            if(messageBean.bitmap != null){
-                imageView.setVisibility(View.VISIBLE);
-                imageView.setImageBitmap(messageBean.bitmap);
-            }else{
-                imageView.setVisibility(View.GONE);
-            }
-
             if (choosepos == position) {
                 view.setBackgroundResource(R.color.gray_1a);
             } else {

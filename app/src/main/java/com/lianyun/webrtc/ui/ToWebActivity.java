@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dds.skywebrtc.engine.DataChannelListener;
+import com.lianyun.webrtc.R;
 import com.lianyun.webrtc.ui.adapter.AutoAdapter;
 import com.lianyun.webrtc.ui.adapter.MessageAdapter;
 import com.lianyun.webrtc.utils.Base64Util;
@@ -42,7 +43,6 @@ import com.perry.core.consts.Urls;
 import com.perry.core.socket.IUserState;
 import com.perry.core.socket.SocketManager;
 import com.perry.core.voip.CallSingleActivity;
-import com.lianyun.webrtc.R;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -70,7 +70,7 @@ public class ToWebActivity extends BaseActivity implements IUserState {
     SharedPreferences sharedPreferences;
     TextView tvInfo;
     EditText etMessage;
-    AppCompatButton buttonSend,buttonSendImage,buttonSendCamera;
+    AppCompatButton buttonSend, buttonSendImage, buttonSendCamera;
     SocketManager socketManager;
     RecyclerView recyclerView;
     MessageAdapter messageAdapter;
@@ -78,10 +78,14 @@ public class ToWebActivity extends BaseActivity implements IUserState {
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message msg) {
-            if(msg.what == 0){
+            if (msg.what == 0) {
                 messageAdapter.notifyDataSetChanged();
                 recyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
-
+                uriLocal = null;
+            } else if (msg.what == -1) {
+                Toast.makeText(ToWebActivity.this, "发送失败，请检查webRTC链接情况", Toast.LENGTH_SHORT).show();
+            } else if (msg.what == -2) {
+                Toast.makeText(ToWebActivity.this, "发送失败，请初始化链接情况", Toast.LENGTH_SHORT).show();
             }
             return false;
         }
@@ -121,8 +125,8 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         socketManager = SocketManager.getInstance();
         socketManager.setDataChannelListener(new DataChannelListener() {
             @Override
-            public void onReceiveBinaryMessage(String socketId, String message,byte[] data) {
-                Log.d(TAG,"onReceiveBinaryMessage socketId:"+socketId+",message:"+message);
+            public void onReceiveBinaryMessage(String socketId, String message, byte[] data) {
+                Log.d(TAG, "onReceiveBinaryMessage socketId:" + socketId + ",message:" + message);
                 Bitmap bitmap = Base64Util.base64ToBitmap(data);
                 messageAdapter.addItemBitmap(bitmap);
                 handler.sendEmptyMessage(0);
@@ -130,19 +134,45 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 
             @Override
             public void onReceiveMessage(String socketId, String message) {
-                Log.d(TAG,"onReceiveMessage socketId:"+socketId+",message:"+message);
-                messageAdapter.addItemData(message);
+                Log.d(TAG, "onReceiveMessage socketId:" + socketId + ",message:" + message);
+                messageAdapter.addItemLeftString(message);
                 handler.sendEmptyMessage(0);
             }
 
             @Override
             public void onReceiveFileProgress(float progress) {
-                Log.d(TAG,"onReceiveFileProgress:" + progress);
+                Log.d(TAG, "onReceiveFileProgress:" + progress);
                 messageAdapter.showProgress(progress);
                 handler.sendEmptyMessage(0);
             }
+
+            @Override
+            public void onSendFailed() {
+                handler.sendEmptyMessage(-2);
+            }
+
+            @Override
+            public void onSendResult(boolean isSend, byte[] message, boolean binary) {
+                if (isSend) {
+                    //发送成功
+                    if (uriLocal != null && binary) {
+                        messageAdapter.addItemRightDataUri(uriLocal);
+                    } else {
+                        String messageStr = new String(message);
+                        String[] megInfo = messageStr.split("\\|");
+                        if (megInfo.length == 2) {
+                            messageAdapter.addItemRightString(megInfo[1]);
+                        } else {
+                            messageAdapter.addItemRightString(messageStr);
+                        }
+                    }
+                    handler.sendEmptyMessage(0);
+                } else {
+                    handler.sendEmptyMessage(-1);
+                }
+            }
         });
-        Urls.URL_HOST = sharedPreferences.getString("host",Urls.URL_HOST);
+        Urls.URL_HOST = sharedPreferences.getString("host", Urls.URL_HOST);
         etAdd.setText(Urls.URL_HOST);
         tvInfo.setText("当前服务器地址:(" + Urls.URL_HOST + ")");
         Observable.<ArrayList>create(new ObservableOnSubscribe<ArrayList>() {
@@ -175,18 +205,18 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         }).subscribeOn(Schedulers.io()).
                 observeOn(AndroidSchedulers.mainThread()).
                 subscribe(
-                next ->{
-                    Log.d(TAG,"next"+next);
-                    AutoAdapter<String> adapter = new AutoAdapter<String>(ToWebActivity.this, R.layout.simple_dropdown_item, next);
-                    etAdd.setAdapter(adapter);
-        },
-                error -> {
-                    Log.e(TAG,"error:"+error);
-        },
-                ()->{
-                    Log.d(TAG,"complete()");
-        }
-        );
+                        next -> {
+                            Log.d(TAG, "next" + next);
+                            AutoAdapter<String> adapter = new AutoAdapter<String>(ToWebActivity.this, R.layout.simple_dropdown_item, next);
+                            etAdd.setAdapter(adapter);
+                        },
+                        error -> {
+                            Log.e(TAG, "error:" + error);
+                        },
+                        () -> {
+                            Log.d(TAG, "complete()");
+                        }
+                );
 
         etAdd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -209,9 +239,9 @@ public class ToWebActivity extends BaseActivity implements IUserState {
                         || (event != null && KeyEvent.KEYCODE_ENTER == event.getKeyCode() && KeyEvent.ACTION_UP == event.getAction())) {
                     // TODO 此处来点freestyle~ 保存服务器地址了
                     String inputStr = etAdd.getText().toString().trim();
-                    if(TextUtils.isEmpty(inputStr)){
+                    if (TextUtils.isEmpty(inputStr)) {
                         Toast.makeText(ToWebActivity.this, "服务器地址不能为空", Toast.LENGTH_SHORT).show();
-                    }else{
+                    } else {
                         sharedPreferences.edit().putString("host", inputStr).putString(System.currentTimeMillis() + "", Urls.URL_HOST).apply();
                         Urls.URL_HOST = inputStr;
                         tvInfo.setText("当前服务器地址:(" + Urls.URL_HOST + ")");
@@ -225,9 +255,9 @@ public class ToWebActivity extends BaseActivity implements IUserState {
             @Override
             public void onClick(View v) {
                 String message = etMessage.getText().toString().trim();
-                if(TextUtils.isEmpty(message)){
+                if (TextUtils.isEmpty(message)) {
                     Toast.makeText(ToWebActivity.this, "发生内容不能为空", Toast.LENGTH_SHORT).show();
-                }else{
+                } else {
                     // 发送文本消息
                     socketManager.sendMessage(message);
                 }
@@ -236,14 +266,14 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         buttonSendImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO 发送图片；选择或者照相
+                // 发送图片；选择或者照相
                 openGallery();
             }
         });
         buttonSendCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO 选择照相
+                // 选择照相
                 openCamera();
             }
         });
@@ -252,11 +282,12 @@ public class ToWebActivity extends BaseActivity implements IUserState {
     public static final int TAKE_CAMERA = 101;
     public static final int PICK_PHOTO = 102;
     private Uri imageUri;
+    private Uri uriLocal;
 
     /**
      * 打开相机
      */
-    private Uri openCamera(){
+    private Uri openCamera() {
 //        // 需要说明一下，以下操作使用照相机拍照，
 //        // 拍照后的图片会存放在相册中的,这里使用的这种方式有一个好处就是获取的图片是拍照后的原图，
 //        // 如果不实用ContentValues存放照片路径的话，拍照后获取的图片为缩略图不清晰
@@ -266,14 +297,14 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 
         // 创建File对象，用于存储拍照后的图片
         //存放在手机SD卡的应用关联缓存目录下
-        File outputImage = new File(getExternalCacheDir(), System.currentTimeMillis()+".jpg");
+        File outputImage = new File(getExternalCacheDir(), System.currentTimeMillis() + ".jpg");
                /* 从Android 6.0系统开始，读写SD卡被列为了危险权限，如果将图片存放在SD卡的任何其他目录，
                   都要进行运行时权限处理才行，而使用应用关联 目录则可以跳过这一步
                 */
         try {
             if (outputImage.exists()) {
                 outputImage.delete();
-            }else{
+            } else {
                 outputImage.createNewFile();
             }
         } catch (Exception e) {
@@ -302,9 +333,9 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         startActivityForResult(intent, TAKE_CAMERA);
         return imageUri;
     }
+
     /**
      * 打开相册
-     *
      */
     private void openGallery() {
 //        Intent intent = new Intent(Intent.ACTION_PICK);
@@ -326,27 +357,33 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         Log.d(TAG, "requestCode : " + requestCode + " , resultCode : " + resultCode + " , data : " + data);
         // 这里没有判断是否匹配，data为空
         if (requestCode == PICK_PHOTO) {
-            if(data == null){
-                Log.e(TAG,"onActivityResult  接收到的intent为空了 requestCode："+requestCode+"，resultCode："+resultCode);
+            if (data == null) {
+                Log.e(TAG, "onActivityResult  接收到的intent为空了 requestCode：" + requestCode + "，resultCode：" + resultCode);
                 return;
             }
-            Uri uri = data.getData();
-            messageAdapter.addItemDataUri(uri);
-            handler.sendEmptyMessage(0);
+            uriLocal = data.getData();
             // 这里实际要发送出去的
             try {
-                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
-                byte[]  messageByte = Base64Util.bitmapToBase64(bitmap);
+                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(uriLocal));
+                byte[] messageByte = Base64Util.bitmapToBase64(bitmap);
                 socketManager.sendMessage(messageByte);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
 
-        }else if(requestCode == TAKE_CAMERA){
-//            curImgPath
+        } else if (requestCode == TAKE_CAMERA) {
 //            Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(curImgPath));
-            messageAdapter.addItemDataUri(imageUri);
-            handler.sendEmptyMessage(0);
+            if (imageUri != null) {
+                try {
+                    Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+                    byte[] messageByte = Base64Util.bitmapToBase64(bitmap);
+                    socketManager.sendMessage(messageByte);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+//            messageAdapter.addItemLeftDataUri(imageUri);
+//            handler.sendEmptyMessage(0);
         }
     }
 
@@ -473,7 +510,7 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
         String localPeerId = "hololens";
         String remotePeerId = "windows";
-        socketManager.connectHttp(Urls.URL_HOST, localPeerId,remotePeerId);
+        socketManager.connectHttp(Urls.URL_HOST, localPeerId, remotePeerId);
 //        windows hololens
         CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
     }

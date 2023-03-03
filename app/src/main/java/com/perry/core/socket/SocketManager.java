@@ -7,14 +7,14 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.dds.skywebrtc.CallSession;
+import com.dds.skywebrtc.EnumType;
+import com.dds.skywebrtc.SkyEngineKit;
 import com.dds.skywebrtc.engine.DataChannelListener;
 import com.perry.App;
 import com.perry.core.voip.Consts;
 import com.perry.core.voip.VoipReceiver;
 import com.perry.net.MyHttp;
-import com.dds.skywebrtc.CallSession;
-import com.dds.skywebrtc.EnumType;
-import com.dds.skywebrtc.SkyEngineKit;
 
 import java.lang.ref.WeakReference;
 import java.net.URI;
@@ -44,6 +44,7 @@ public class SocketManager implements IEvent {
     private SocketManager() {
 
     }
+
     //接受消息的监听
     public void setDataChannelListener(DataChannelListener listener) {
         dataChannelListener = listener;
@@ -398,20 +399,29 @@ public class SocketManager implements IEvent {
         });
     }
 
-//    @Override
+    //    @Override
     public void sendMessage(byte[] message) {
         handler.post(() -> {
             CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
             if (currentSession != null) {
-                currentSession.sendMessage(message,true);
+                currentSession.sendMessage(message, true);
+            } else {
+                // 发送失败
+                dataChannelListener.onSendFailed();
             }
         });
     }
+
     public void sendMessage(String message) {
+        //发送文本消息的时候拼接上发送时间戳
+        String messageTime = System.currentTimeMillis() + "|" + message;
+        ;
         handler.post(() -> {
             CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
             if (currentSession != null) {
-                currentSession.sendMessage(message.getBytes(),false);
+                currentSession.sendMessage(messageTime.getBytes(), false);
+            } else {
+                dataChannelListener.onSendFailed();
             }
         });
     }

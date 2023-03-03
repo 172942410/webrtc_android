@@ -54,7 +54,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
         queuedRemoteCandidates = new ArrayList<>();
         this.pc = createPeerConnection();
         Log.d("dds_test", "create Peer:" + mUserId);
-        createDataChannel("createDataChannel",pc);
+        createDataChannel("createDataChannel", pc);
     }
 
     public PeerConnection createPeerConnection() {
@@ -145,7 +145,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 
             @Override
             public void onFrameResolutionChanged(int videoWidth, int videoHeight, int rotation) {
-                Log.d(TAG, "createRender onFrameResolutionChanged videoWidth:"+videoWidth+",videoHeight:"+videoHeight+",rotation:"+rotation);
+                Log.d(TAG, "createRender onFrameResolutionChanged videoWidth:" + videoWidth + ",videoHeight:" + videoHeight + ",rotation:" + rotation);
             }
         });
 //        画幅被裁剪了；显示的太大了
@@ -207,7 +207,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 
     @Override
     public void onIceCandidate(IceCandidate candidate) {
-        Log.d(TAG,"获取到 onIceCandidate :" + candidate);
+        Log.d(TAG, "获取到 onIceCandidate :" + candidate);
         // 发送IceCandidate
         mEvent.onSendIceCandidate(mUserId, candidate);
     }
@@ -359,13 +359,13 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                 //
                 @Override
                 public void onBufferedAmountChange(long l) {
-                    Log.d(TAG,"onBufferedAmountChange:"+l);
+                    Log.d(TAG, "onBufferedAmountChange:" + l);
                 }
 
                 //状态发生改变
                 @Override
                 public void onStateChange() {
-                    Log.d(TAG,"onStateChange:");
+                    Log.d(TAG, "onStateChange:");
                 }
 
                 /**
@@ -385,7 +385,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                         data.get(bytes);
                         if (dataChannelListener != null) {
                             if (buffer.binary) { //是二进制数据
-                                dataChannelListener.onReceiveBinaryMessage(socketId, "",bytes);
+                                dataChannelListener.onReceiveBinaryMessage(socketId, "", bytes);
 //                                if (isHeader) {
 //                                    isHeader = false;//为false时就不是第一次，只有第一次需要检测文件后缀
 //                                    //检测文件后缀
@@ -440,27 +440,29 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
      * @param message
      */
     public boolean sendMsg(String message) {
-        if(null != message) {
+        if (null != message) {
             byte[] msg = message.getBytes();
-            return sendMsg(msg,false);
-        }
-        return false;
-    }
-    public boolean sendMsg(byte[] message,boolean binary) {
-        if (dataChannel != null) {
-            if (message != null) {
-                DataChannel.Buffer buffer = new DataChannel.Buffer(ByteBuffer.wrap(message), binary);
-                boolean isSend =  dataChannel.send(buffer);
-                Log.d(TAG,"发送完成："+isSend);
-                return isSend;
-            }
-        }else{
-            Log.e(TAG,"发送消息异常");
+            return sendMsg(msg, false);
         }
         return false;
     }
 
-    void setDataChannelListener(DataChannelListener Listener){
+    public boolean sendMsg(byte[] message, boolean binary) {
+        if (dataChannel != null) {
+            if (message != null) {
+                DataChannel.Buffer buffer = new DataChannel.Buffer(ByteBuffer.wrap(message), binary);
+                boolean isSend = dataChannel.send(buffer);
+                Log.d(TAG, "发送完成：" + isSend);
+                dataChannelListener.onSendResult(isSend, message, binary);
+                return isSend;
+            }
+        } else {
+            Log.e(TAG, "发送消息异常");
+        }
+        return false;
+    }
+
+    void setDataChannelListener(DataChannelListener Listener) {
         dataChannelListener = Listener;
     }
 

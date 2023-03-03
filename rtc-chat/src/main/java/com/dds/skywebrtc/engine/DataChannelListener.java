@@ -11,4 +11,8 @@ public interface DataChannelListener {
 
     void onReceiveFileProgress(float progress);
 
+    void onSendFailed();
+
+    void onSendResult(boolean isSend,byte[] message, boolean binary);
+
 }
