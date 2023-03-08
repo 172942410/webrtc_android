@@ -215,6 +215,9 @@ class CameraUsbSession implements CameraSession {
                 callback.onDone(CameraUsbSession.this);
 
 //                checkIsOnCameraThread();
+                if(captureFormat == null){
+                    captureFormat = new CaptureFormat(1280, 720, 15,30);
+                }
                 surfaceTextureHelper.setTextureSize(captureFormat.width, captureFormat.height);
                 surface = new Surface(surfaceTextureHelper.getSurfaceTexture());
                 try {
