@@ -3,8 +3,10 @@ package com.lianyun.webrtc.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,6 +38,16 @@ import com.lianyun.webrtc.R;
 import com.lianyun.webrtc.ui.adapter.AutoAdapter;
 import com.lianyun.webrtc.ui.adapter.MessageAdapter;
 import com.lianyun.webrtc.utils.Base64Util;
+import com.llvision.glass3.core.lcd.client.IGlassDisplay;
+import com.llvision.glass3.core.lcd.client.ILCDClient;
+import com.llvision.glass3.library.boot.DeviceInfo;
+import com.llvision.glass3.library.boot.FirmwareInfo;
+import com.llvision.glass3.library.lcd.LCDInfo;
+import com.llvision.glass3.platform.ConnectionStatusListener;
+import com.llvision.glass3.platform.IGlass3Device;
+import com.llvision.glass3.platform.LLVisionGlass3SDK;
+import com.llvision.glxss.common.exception.BaseException;
+import com.llvision.glxss.common.utils.ToastUtils;
 import com.perry.App;
 import com.perry.core.MainActivity;
 import com.perry.core.base.BaseActivity;
@@ -53,6 +65,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -91,6 +104,12 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         }
     });
 
+    /**
+     * true:MUSIC_MODE<br/>
+     * false:TALK_MODE(echo cancellation)<br/>
+     */
+    TextView tvUsbState;//tv_usb_state
+    IGlass3Device mGlass3Device;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,6 +135,7 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         buttonSend = findViewById(R.id.button_send);
         buttonSendImage = findViewById(R.id.button_send_image);
         buttonSendCamera = findViewById(R.id.button_send_camera);
+        tvUsbState = findViewById(R.id.tv_usb_state);
 
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(ToWebActivity.this));
@@ -279,6 +299,54 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         });
     }
 
+    @Override
+    protected void onPermissionAccepted(boolean isAccepted) {
+        super.onPermissionAccepted(isAccepted);
+        Log.d(TAG,"onPermissionAccepted isAccepted: " + isAccepted);
+        if (isAccepted) {
+            LLVisionGlass3SDK.getInstance().init(this, new ConnectionStatusListener() {
+                @Override
+                public void onServiceConnected(List<IGlass3Device> glass3Devices) {
+
+                }
+
+                @Override
+                public void onServiceDisconnected() {
+
+                }
+
+                @Override
+                public void onDeviceConnect(final IGlass3Device device) {
+                    mGlass3Device = device;
+                    tvUsbState.setTextColor(Color.GREEN);
+                    tvUsbState.setText("设备已连接");
+                    try {
+                        if (device != null) {
+                            readDeviceInfo(device);
+                        }
+                    } catch (PackageManager.NameNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onDeviceDisconnect(IGlass3Device device) {
+                    tvUsbState.setTextColor(Color.RED);
+                    tvUsbState.setText("设备未连接");
+//                    mVersionTv.setText("");
+                }
+
+                @Override
+                public void onError(int code, String msg) {
+
+                    ToastUtils.showShort(getApplicationContext(), "Init llvision sdk failed!!!");
+                }
+            });
+        }
+    }
+
     public static final int TAKE_CAMERA = 101;
     public static final int PICK_PHOTO = 102;
     private Uri imageUri;
@@ -432,68 +500,6 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 
     }
 
-    /**
-     * 1，创建socket链接；获取信息
-     */
-    public void connectSocket() {
-        String host = "ws://ws.xx.com/server/xx";
-        URI serverURI = URI.create(host);
-        WebSocketClient mWebSocketClient = new WebSocketClient(serverURI) {
-            @Override
-            public void onOpen(ServerHandshake handshakedata) {
-                Log.d(TAG, "socket state connect");
-            }
-
-            @Override
-            public void onMessage(String message) {
-                Log.d(TAG, "web socket onMessage:" + message);
-//                try {
-//                    TestBean bean =  JSON.parseObject(message,TestBean.class);
-//                    if (bean != null && bean.message != null) {
-//                        if ("init".equals(bean.message.type)) {
-//                            Log.d(TAG, "初始化成功");
-//                            if (!mIsReady) {
-//                                mIsTerminalEnd = false;
-//                                mIsReady = true;
-//                                messageHandler.onMessage("ready", id, payload);
-//                            }
-//                        } else if ("answer".equals(bean.message.type)) {
-//                            Log.d(TAG, "收到answer");
-//                            if (bean.message.data != null) {
-//                                JSONObject payload = new JSONObject();
-//                                payload.put("type", bean.message.data.type);
-//                                payload.put("description", bean.message.data.description);
-//                                messageHandler.onMessage("answer", id, payload);
-//                            }
-//                        } else if ("candidate".equals(bean.message.type)) {
-//                            Log.d(TAG, "收到candidate");
-//                            if (bean.message.data != null) {
-//                                JSONObject payload = new JSONObject();
-//                                payload.put("id", bean.message.data.id);
-//                                payload.put("label", bean.message.data.label);
-//                                payload.put("candidate", bean.message.data.candidate);
-//                                messageHandler.onMessage("candidate", id, payload);
-//                            }
-//                        }
-//                    }
-//                } catch (Exception e) {
-//                    Log.e(TAG, "WebSocket连接异常：" + e.getLocalizedMessage());
-//                }
-            }
-
-            @Override
-            public void onClose(int code, String reason, boolean remote) {
-                Log.d(TAG, "web socket onClose code:" + code + " reason:" + reason + " remote:" + remote);
-            }
-
-            @Override
-            public void onError(Exception ex) {
-                Log.d(TAG, "web socket onError:" + ex.getLocalizedMessage());
-            }
-        };
-        mWebSocketClient.connect();
-    }
-
     public void callVideo(View view) {
         String username = etAdd.getText().toString().trim();
         username = "windows";
@@ -514,4 +520,47 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 //        windows hololens
         CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
     }
+
+
+    private void readDeviceInfo(IGlass3Device device) throws PackageManager
+            .NameNotFoundException, BaseException {
+        StringBuffer sb = new StringBuffer();
+        sb.append("软件版本号:" + getPackageManager().
+                getPackageInfo(getPackageName(), 0).versionName + "\n");
+        FirmwareInfo firmwareInfo = device.getFirmwareInfo();
+        if (firmwareInfo != null) {
+            sb.append("固件版本号:" + firmwareInfo.version + "\n");
+            sb.append("固件项目名称:" + firmwareInfo.projectName + "\n");
+            sb.append("chipId:").append(firmwareInfo.chipId).append("\n");
+        }
+
+        DeviceInfo mProductInfo = device.getDeviceInfo();
+        if (mProductInfo != null) {
+            sb.append("编码版本号：" + mProductInfo.getPlatformID() + "\n");
+            sb.append("产品ID：" + mProductInfo.getProductID() + "\n");
+            sb.append("厂商ID：" + mProductInfo.getFirmID() + "\n");
+            sb.append("主板序列号/BSN：" + mProductInfo.getBsnID() + "\n");
+            sb.append("整机序列号/PSN：" + mProductInfo.getPsnID() + "\n");
+            sb.append("BOMID：" + mProductInfo.getBomID() + "\n");
+            sb.append("ISP版本号：" + mProductInfo.getIspID() + "\n");
+            sb.append("子板固件：" + mProductInfo.getFirmwareID() + "\n");
+            sb.append("显示器的分辨率宽度：" + mProductInfo.getResolutionWidth() + "\n");
+            sb.append("显示器的分辨率高度：" + mProductInfo.getResolutionHeight() + "\n");
+            sb.append("GLXSS ID：" + mProductInfo.getGlxssId() + "\n");
+            sb.append("Software Version：" + mProductInfo.getSoftwareVersion() + "\n");
+        }
+        LLVisionGlass3SDK instance = LLVisionGlass3SDK.getInstance();
+        ILCDClient ilcdClient = (ILCDClient) instance.getGlass3Client(IGlass3Device.Glass3DeviceClient.LCD);
+        IGlassDisplay glassDisplay = ilcdClient.getGlassDisplay(device);
+        LCDInfo lcdInfo = glassDisplay.getLCDInfo();
+        if (lcdInfo != null) {
+            sb.append("\n");
+            sb.append("亮度等级：");
+            sb.append(lcdInfo.level + 1);
+        }
+//        mVersionTv.setText(sb.toString());
+        messageAdapter.addItemRightString(sb.toString());
+        handler.sendEmptyMessage(0);
+    }
+
 }

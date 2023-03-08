@@ -19,7 +19,7 @@ package org.webrtc;
  *     Histogram.createCounts("WebRTC.Video.SomeMetric", 1, 10000, 50);
  * someMetricHistogram.addSample(someVariable);
  */
-class Histogram {
+public class Histogram {
   private final long handle;
 
   private Histogram(long handle) {

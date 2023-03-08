@@ -12,6 +12,13 @@
         android:layout_height="match_parent"
         android:layout_gravity="center" />
 
+<!--    <com.llvision.glxss.common.ui.CameraTextureView-->
+<!--        android:id="@+id/camera_view"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:visibility="gone"-->
+<!--        />-->
+
     <FrameLayout
         android:id="@+id/pip_video_view"
         android:layout_width="100dp"

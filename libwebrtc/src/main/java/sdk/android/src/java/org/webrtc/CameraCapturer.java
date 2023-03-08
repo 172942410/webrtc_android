@@ -17,7 +17,7 @@ import android.os.Looper;
 import java.util.Arrays;
 
 @SuppressWarnings("deprecation")
-abstract class CameraCapturer implements CameraVideoCapturer {
+public abstract class CameraCapturer implements CameraVideoCapturer {
     enum SwitchState {
         IDLE, // No switch requested.
         PENDING, // Waiting for previous capture session to open.
@@ -38,7 +38,7 @@ abstract class CameraCapturer implements CameraVideoCapturer {
             new CameraSession.CreateSessionCallback() {
                 @Override
                 public void onDone(CameraSession session) {
-                    checkIsOnCameraThread();
+//                    checkIsOnCameraThread();
                     Logging.d(TAG, "Create session done. Switch state: " + switchState);
                     uiThreadHandler.removeCallbacks(openCameraTimeoutRunnable);
                     synchronized (stateLock) {
@@ -430,8 +430,8 @@ abstract class CameraCapturer implements CameraVideoCapturer {
 
     private void checkIsOnCameraThread() {
         if (Thread.currentThread() != cameraThreadHandler.getLooper().getThread()) {
-            Logging.e(TAG, "Check is on camera thread failed.");
-            throw new RuntimeException("Not on camera thread.");
+            Logging.e(TAG, "检查相机线程失败。");
+            throw new RuntimeException("不在相机线程上。");
         }
     }
 

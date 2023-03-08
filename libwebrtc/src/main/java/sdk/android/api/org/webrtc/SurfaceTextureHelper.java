@@ -304,7 +304,7 @@ public class SurfaceTextureHelper {
             RendererCommon.convertMatrixToAndroidGraphicsMatrix(transformMatrix), handler,
             yuvConverter, this ::returnTextureFrame);
     final VideoFrame frame = new VideoFrame(buffer, frameRotation, timestampNs);
-    ((VideoSink) listener).onFrame(frame);
+    listener.onFrame(frame);
     frame.release();
   }
 

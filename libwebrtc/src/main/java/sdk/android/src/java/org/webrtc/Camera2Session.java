@@ -124,8 +124,8 @@ class Camera2Session implements CameraSession {
             surfaceTextureHelper.setTextureSize(captureFormat.width, captureFormat.height);
             surface = new Surface(surfaceTextureHelper.getSurfaceTexture());
             try {
-                camera.createCaptureSession(
-                        Arrays.asList(surface), new CaptureSessionCallback(), cameraThreadHandler);
+                //TODO 这里是调用后置摄像头的起始位置
+                camera.createCaptureSession(Arrays.asList(surface), new CaptureSessionCallback(), cameraThreadHandler);
             } catch (CameraAccessException e) {
                 reportError("Failed to create capture session. " + e);
                 return;

@@ -17,6 +17,9 @@ import com.dds.skywebrtc.engine.DataChannelListener;
 import com.dds.skywebrtc.engine.EngineCallback;
 import com.dds.skywebrtc.engine.IEngine;
 import com.dds.skywebrtc.render.ProxyVideoSink;
+import com.llvision.glass3.platform.LLVisionGlass3SDK;
+import com.perry.webrtc.usb.CameraUsbEnumerator;
+import com.perry.webrtc.usb.TextureViewRenderer;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -61,6 +64,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     private VideoCapturer captureAndroid;
     private SurfaceTextureHelper surfaceTextureHelper;
     private SurfaceViewRenderer localRenderer;
+    private TextureViewRenderer usbRenderer;
 
     private static final String VIDEO_TRACK_ID = "ARDAMSv0";
     private static final String AUDIO_TRACK_ID = "ARDAMSa0";
@@ -248,18 +252,29 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (mRootEglBase == null) {
             return null;
         }
-        localRenderer = new SurfaceViewRenderer(mContext);
-        localRenderer.init(mRootEglBase.getEglBaseContext(), null);
-        localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-        localRenderer.setMirror(true);
-        localRenderer.setZOrderMediaOverlay(isOverlay);
-
         ProxyVideoSink localSink = new ProxyVideoSink();
-        localSink.setTarget(localRenderer);
-        if (_localStream.videoTracks.size() > 0) {
-            _localStream.videoTracks.get(0).addSink(localSink);
+        if (LLVisionGlass3SDK.getInstance().isServiceConnected()) {
+            usbRenderer = new TextureViewRenderer(mContext);
+            usbRenderer.init(mRootEglBase.getEglBaseContext(), null);
+            usbRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+            usbRenderer.setMirror(true);
+            localSink.setTarget(usbRenderer);
+            if (_localStream.videoTracks.size() > 0) {
+                _localStream.videoTracks.get(0).addSink(localSink);
+            }
+            return usbRenderer;
+        }else{
+            localRenderer = new SurfaceViewRenderer(mContext);
+            localRenderer.init(mRootEglBase.getEglBaseContext(), null);
+            localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+            localRenderer.setMirror(true);
+            localRenderer.setZOrderMediaOverlay(isOverlay);
+            localSink.setTarget(localRenderer);
+            if (_localStream.videoTracks.size() > 0) {
+                _localStream.videoTracks.get(0).addSink(localSink);
+            }
+            return localRenderer;
         }
-        return localRenderer;
     }
 
     @Override
@@ -295,6 +310,10 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (localRenderer != null) {
             localRenderer.release();
             localRenderer = null;
+        }
+        if (usbRenderer != null){
+            usbRenderer.release();
+            usbRenderer = null;
         }
     }
 
@@ -583,7 +602,9 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         }
 
         if (Camera2Enumerator.isSupported(mContext)) {
-            videoCapturer = createCameraCapture(new Camera2Enumerator(mContext));
+            //TODO 这里还要考虑一个外接摄像头的方案
+//            videoCapturer = createCameraCapture(new Camera2Enumerator(mContext));
+            videoCapturer = createCameraCapture(new CameraUsbEnumerator(mContext));
         } else {
             videoCapturer = createCameraCapture(new Camera1Enumerator(true));
         }

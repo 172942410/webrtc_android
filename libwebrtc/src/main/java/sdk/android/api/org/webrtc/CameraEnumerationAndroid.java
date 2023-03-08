@@ -23,7 +23,7 @@ import java.util.List;
 public class CameraEnumerationAndroid {
   private final static String TAG = "CameraEnumerationAndroid";
 
-  static final ArrayList<Size> COMMON_RESOLUTIONS = new ArrayList<Size>(Arrays.asList(
+  public static final ArrayList<Size> COMMON_RESOLUTIONS = new ArrayList<Size>(Arrays.asList(
       // 0, Unknown resolution
       new Size(160, 120), // 1, QQVGA
       new Size(240, 160), // 2, HQVGA
@@ -197,7 +197,7 @@ public class CameraEnumerationAndroid {
   }
 
   // Helper method for camera classes.
-  static void reportCameraResolution(Histogram histogram, Size resolution) {
+  public static void reportCameraResolution(Histogram histogram, Size resolution) {
     int index = COMMON_RESOLUTIONS.indexOf(resolution);
     // 0 is reserved for unknown resolution, so add 1.
     // indexOf returns -1 for unknown resolutions so it becomes 0 automatically.

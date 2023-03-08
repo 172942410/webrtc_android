@@ -117,7 +117,6 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                         queuedRemoteCandidates.add(candidate);
                     }
                 }
-
             } else {
                 Log.d("dds_test", "addRemoteIceCandidate1111");
                 pc.addIceCandidate(candidate);
