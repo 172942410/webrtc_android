@@ -1,10 +1,8 @@
 package com.perry.core.voip;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
-import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -14,27 +12,17 @@ import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 
-import com.llvision.glass3.core.camera.client.CameraException;
-import com.llvision.glass3.core.camera.client.CameraStatusListener;
-import com.llvision.glass3.core.camera.client.ICameraClient;
-import com.llvision.glass3.core.camera.client.ICameraDevice;
-import com.llvision.glass3.platform.IGlass3Device;
-import com.llvision.glass3.platform.LLVisionGlass3SDK;
-import com.llvision.glxss.common.exception.BaseException;
-import com.llvision.glxss.common.ui.SurfaceCallback;
-import com.llvision.glxss.common.utils.LogUtil;
-import com.perry.core.util.BarUtils;
-import com.perry.core.util.OSUtils;
 import com.dds.skywebrtc.CallSession;
 import com.dds.skywebrtc.EnumType.CallState;
 import com.dds.skywebrtc.SkyEngineKit;
 import com.lianyun.webrtc.R;
+import com.perry.core.util.BarUtils;
+import com.perry.core.util.OSUtils;
 import com.perry.webrtc.usb.TextureViewRenderer;
 
 import org.webrtc.RendererCommon;
 import org.webrtc.SurfaceViewRenderer;
 
-import java.util.List;
 
 /**
  * Created by dds on 2018/7/26.
@@ -158,10 +146,10 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
                     View surfaceView = gEngineKit.getCurrentSession().setupLocalVideo(false);
                     Log.d(TAG, "init surfaceView != null is " + (surfaceView != null) + "; isOutgoing = " + isOutgoing + "; currentState = " + currentState);
                     if (surfaceView != null) {
-                        if(surfaceView instanceof TextureViewRenderer){
+                        if (surfaceView instanceof TextureViewRenderer) {
                             usbTextureView = (TextureViewRenderer) surfaceView;
                             fullscreenRenderer.addView(usbTextureView);
-                        }else{
+                        } else {
                             localSurfaceView = (SurfaceViewRenderer) surfaceView;
                             localSurfaceView.setZOrderMediaOverlay(false);
                             fullscreenRenderer.addView(localSurfaceView);
@@ -210,9 +198,9 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
         if (localSurfaceView == null || usbTextureView == null) {
             View surfaceView = gEngineKit.getCurrentSession().setupLocalVideo(true);
             if (surfaceView != null) {
-                if(surfaceView instanceof TextureViewRenderer){
+                if (surfaceView instanceof TextureViewRenderer) {
                     usbTextureView = (TextureViewRenderer) surfaceView;
-                }else{
+                } else {
                     localSurfaceView = (SurfaceViewRenderer) surfaceView;
                 }
             } else {
@@ -220,14 +208,14 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
                 return;
             }
         } else {
-            if(localSurfaceView != null) {
+            if (localSurfaceView != null) {
                 localSurfaceView.setZOrderMediaOverlay(true);
             }
         }
         Log.d(TAG,
                 "didCreateLocalVideoTrack localSurfaceView != null is " + (localSurfaceView != null) + "; remoteSurfaceView == null = " + (remoteSurfaceView == null)
         );
-        if(usbTextureView != null){
+        if (usbTextureView != null) {
             if (usbTextureView.getParent() != null) {
                 ((ViewGroup) usbTextureView.getParent()).removeView(usbTextureView);
             }
@@ -239,7 +227,7 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
                 if (pipRenderer.getChildCount() != 0) pipRenderer.removeAllViews();
                 pipRenderer.addView(usbTextureView);
             }
-        }else if(localSurfaceView != null){
+        } else if (localSurfaceView != null) {
             if (localSurfaceView.getParent() != null) {
                 ((ViewGroup) localSurfaceView.getParent()).removeView(localSurfaceView);
             }
@@ -330,16 +318,16 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
             if (isFullScreenRemote) {
                 remoteSurfaceView.setZOrderMediaOverlay(true);
                 pipRenderer.addView(remoteSurfaceView);
-                if(usbTextureView != null){
+                if (usbTextureView != null) {
                     fullscreenRenderer.addView(usbTextureView);
-                }else{
+                } else {
                     localSurfaceView.setZOrderMediaOverlay(false);
                     fullscreenRenderer.addView(localSurfaceView);
                 }
             } else {
-                if(usbTextureView != null){
+                if (usbTextureView != null) {
                     pipRenderer.addView(usbTextureView);
-                }else{
+                } else {
                     localSurfaceView.setZOrderMediaOverlay(true);
                     pipRenderer.addView(localSurfaceView);
                 }
@@ -361,94 +349,6 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
             if (callSingleActivity != null) callSingleActivity.showFloatingView();
         }
     }
-
-    private IGlass3Device mGlass3Device;
-    private ICameraDevice mICameraDevice;
-    private ICameraClient mCameraClient;
-    /**
-     * 打开camera
-     */
-    @SuppressLint("StringFormatMatches")
-    private void openCamera() {
-        try {
-            if (LLVisionGlass3SDK.getInstance().isServiceConnected()) {
-                List<IGlass3Device> glass3DeviceList = LLVisionGlass3SDK.getInstance().getGlass3DeviceList();
-                if (glass3DeviceList != null && glass3DeviceList.size() > 0) {
-                    mGlass3Device = glass3DeviceList.get(0);
-//                    mFovArray = mGlass3Device.getUsbDeviceProductId() >= DeviceFilter.DeviceConnectID.LLV_G40_MAIN_PID ? FOV2 : FOV1;
-                    mCameraClient = (ICameraClient) LLVisionGlass3SDK.getInstance().getGlass3Client(IGlass3Device.Glass3DeviceClient.CAMERA);
-//                    checkFirmwareInfo(mGlass3Device.getFirmwareInfo().projectName);
-                }
-            }
-            mICameraDevice = mCameraClient.openCamera(mGlass3Device, new CameraStatusListener() {
-                @Override
-                public void onCameraOpened() {
-
-                }
-
-                @Override
-                public void onCameraConnected() {
-
-                }
-
-                @Override
-                public void onCameraDisconnected() {
-
-                }
-
-                @Override
-                public void onCameraClosed() {
-
-                }
-
-                @Override
-                public void onError(int i) {
-
-                }
-            });
-        } catch (BaseException e) {
-            e.printStackTrace();
-
-        }
-    }
-
-    private SurfaceCallback mSurfaceCallback = new SurfaceCallback() {
-        @Override
-        public void onSurfaceCreated(Surface surface) {
-            LogUtil.i(TAG, "onSurfaceCreated");
-            if (mICameraDevice != null && mICameraDevice.isCameraConnected()) {
-                try {
-                    mICameraDevice.addSurface(surface, false);
-                } catch (CameraException e) {
-                    LogUtil.e(TAG, e);
-                }
-            }
-        }
-
-        @Override
-        public void onSurfaceChanged(Surface surface, int width, int height) {
-            LogUtil.i(TAG, "onSurfaceChanged");
-
-        }
-
-        @Override
-        public void onSurfaceDestroy(Surface surface) {
-            LogUtil.i(TAG, "onSurfaceDestroy");
-            if (mICameraDevice != null) {
-                try {
-                    mICameraDevice.removeSurface(surface);
-                } catch (CameraException e) {
-                    LogUtil.e(TAG, e);
-                }
-            }
-        }
-
-        @Override
-        public void onSurfaceUpdate(Surface surface) {
-//            LogUtil.i(TAG, "onSurfaceUpdate");
-        }
-    };
-
 
     @Override
     public void onDestroyView() {

@@ -24,10 +24,9 @@ import com.llvision.glass3.core.camera.client.CameraException;
 import com.llvision.glass3.core.camera.client.CameraStatusListener;
 import com.llvision.glass3.core.camera.client.ICameraClient;
 import com.llvision.glass3.core.camera.client.ICameraDevice;
-import com.llvision.glass3.core.camera.client.IFrameCallback;
-import com.llvision.glass3.core.camera.client.PixelFormat;
 import com.llvision.glass3.library.usb.DeviceFilter;
 import com.llvision.glass3.platform.ConnectionStatusListener;
+import com.llvision.glass3.platform.GlassException;
 import com.llvision.glass3.platform.IGlass3Device;
 import com.llvision.glass3.platform.LLVisionGlass3SDK;
 import com.llvision.glxss.common.exception.BaseException;
@@ -50,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 
 @TargetApi(21)
 class CameraUsbSession implements CameraSession {
-    private static final String TAG = "Camera2Session";
+    private static final String TAG = "CameraUsbSession";
 
     private static final Histogram camera2StartTimeMsHistogram =
             Histogram.createCounts("WebRTC.Android.Camera2.StartTimeMs", 1, 10000, 50);
@@ -136,7 +135,7 @@ class CameraUsbSession implements CameraSession {
 
         @Override
         public void onDeviceDisconnect(IGlass3Device device) {
-            checkIsOnCameraThread();
+//            checkIsOnCameraThread();
             state = SessionState.STOPPED;
             stopInternal();
 //                callback.onFailure(FailureType.DISCONNECTED, "Camera disconnected / evicted.");
@@ -171,6 +170,7 @@ class CameraUsbSession implements CameraSession {
                 } else {
                     mICameraDevice.setPreviewSize(mWidth, mHeight, mFps);
                 }
+                findCaptureFormat();
 //                mCameraView.setAspectRatio(mWidth / (float) mHeight);
                 mICameraDevice.connect();
                 if (!mHasResolution) {
@@ -186,6 +186,27 @@ class CameraUsbSession implements CameraSession {
         public void onCameraConnected() {
             LogUtil.i(TAG, "CameraStatusListener#onCameraConnected");
             if (mICameraDevice != null) {
+                //                checkIsOnCameraThread();
+                if (captureFormat == null) {
+                    captureFormat = new CaptureFormat(1280, 720, 15, 30);
+                }
+                surfaceTextureHelper.setTextureSize(captureFormat.width, captureFormat.height);
+                surface = new Surface(surfaceTextureHelper.getSurfaceTexture());
+                try {
+//                    mICameraDevice.setFrameCallback(new IFrameCallback() {
+//                        @Override
+//                        public void onFrameAvailable(byte[] bytes) {
+//                            LogUtil.w(TAG, "Nv21..." + bytes.length);
+//                        }
+//                    }, PixelFormat.PIXEL_FORMAT_NV21);
+//                    TODO 以下代码是将摄像头画面投射到UI上面了
+                    if (surface != null) {
+                        mICameraDevice.addSurface(surface, false);
+                    }
+                } catch (CameraException e) {
+                    e.printStackTrace();
+                }
+
                 VideoSink listener = new VideoSink() {
                     @Override
                     public void onFrame(VideoFrame frame) {
@@ -213,27 +234,6 @@ class CameraUsbSession implements CameraSession {
                 surfaceTextureHelper.startListening(listener);
                 Logging.d(TAG, "Camera device successfully started.");
                 callback.onDone(CameraUsbSession.this);
-
-//                checkIsOnCameraThread();
-                if(captureFormat == null){
-                    captureFormat = new CaptureFormat(1280, 720, 15,30);
-                }
-                surfaceTextureHelper.setTextureSize(captureFormat.width, captureFormat.height);
-                surface = new Surface(surfaceTextureHelper.getSurfaceTexture());
-                try {
-//                    mICameraDevice.setFrameCallback(new IFrameCallback() {
-//                        @Override
-//                        public void onFrameAvailable(byte[] bytes) {
-//                            LogUtil.w(TAG, "Nv21..." + bytes.length);
-//                        }
-//                    }, PixelFormat.PIXEL_FORMAT_NV21);
-//                    TODO 以下代码是将摄像头画面投射到UI上面了
-                    if (surface!= null) {
-                        mICameraDevice.addSurface(surface, false);
-                    }
-                } catch (CameraException e) {
-                    e.printStackTrace();
-                }
 
             }
         }
@@ -297,7 +297,13 @@ class CameraUsbSession implements CameraSession {
 
         LLVisionGlass3SDK.getInstance().registerConnectionListener(mConnectionStatusListener);
         try {
-            if (LLVisionGlass3SDK.getInstance().isServiceConnected()) {
+            int size = 0;
+            try {
+                size = LLVisionGlass3SDK.getInstance().getGlass3DeviceList().size();
+            } catch (GlassException e) {
+                e.printStackTrace();
+            }
+            if (size > 0) {
                 List<IGlass3Device> glass3DeviceList = LLVisionGlass3SDK.getInstance().getGlass3DeviceList();
                 if (glass3DeviceList != null && glass3DeviceList.size() > 0) {
                     mGlass3Device = glass3DeviceList.get(0);
@@ -305,7 +311,7 @@ class CameraUsbSession implements CameraSession {
                     mCameraClient = (ICameraClient) LLVisionGlass3SDK.getInstance().getGlass3Client(IGlass3Device.Glass3DeviceClient.CAMERA);
                     checkFirmwareInfo(mGlass3Device.getFirmwareInfo().projectName);
                     mICameraDevice = mCameraClient.openCamera(mGlass3Device, mCameraStatusListener);
-                    findCaptureFormat();
+//                    findCaptureFormat();
                 }
             }
         } catch (Exception e) {
@@ -338,12 +344,12 @@ class CameraUsbSession implements CameraSession {
         } catch (BaseException e) {
             e.printStackTrace();
         }
-        findCaptureFormat();
+//        findCaptureFormat();
     }
 
     private void findCaptureFormat() {
-        checkIsOnCameraThread();
-        if(mICameraDevice == null){
+//        checkIsOnCameraThread();
+        if (mICameraDevice == null) {
             reportError("mICameraDevice 还没来得及初始化呢.");
             return;
         }
@@ -353,7 +359,7 @@ class CameraUsbSession implements CameraSession {
         Range<Integer>[] fpsRanges = null;
         try {
             list = mICameraDevice.getSupportedPreviewSizeList();
-            if(list == null){
+            if (list == null) {
                 reportError("外置相机获取 getSupportedPreviewSizeList 失败.");
                 return;
             }

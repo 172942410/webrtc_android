@@ -17,6 +17,7 @@ import com.dds.skywebrtc.engine.DataChannelListener;
 import com.dds.skywebrtc.engine.EngineCallback;
 import com.dds.skywebrtc.engine.IEngine;
 import com.dds.skywebrtc.render.ProxyVideoSink;
+import com.llvision.glass3.platform.GlassException;
 import com.llvision.glass3.platform.LLVisionGlass3SDK;
 import com.perry.webrtc.usb.CameraUsbEnumerator;
 import com.perry.webrtc.usb.TextureViewRenderer;
@@ -117,7 +118,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         for (String id : userIds) {
             // create Peer
             Peer peer = new Peer(_factory, iceServers, id, this);
-            if(dataChannelListener != null) {
+            if (dataChannelListener != null) {
                 peer.setDataChannelListener(dataChannelListener);
             }
             peer.setOffer(false);
@@ -149,7 +150,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     public void userIn(String userId) {
         // create Peer
         Peer peer = new Peer(_factory, iceServers, userId, this);
-        if(dataChannelListener != null) {
+        if (dataChannelListener != null) {
             peer.setDataChannelListener(dataChannelListener);
         }
         peer.setOffer(true);
@@ -192,9 +193,9 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             peer.setOffer(false);
             peer.setRemoteDescription(sdp);
             peer.createAnswer();
-        }else{
-            Log.e(TAG,"获取联系人为空异常：" + userId+"，peers：" + peers);
-            new Throwable("获取联系人为空异常：" + userId+"，peers：" + peers);
+        } else {
+            Log.e(TAG, "获取联系人为空异常：" + userId + "，peers：" + peers);
+            new Throwable("获取联系人为空异常：" + userId + "，peers：" + peers);
         }
     }
 
@@ -205,9 +206,9 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (peer != null) {
             SessionDescription sessionDescription = new SessionDescription(SessionDescription.Type.ANSWER, sdp);
             peer.setRemoteDescription(sessionDescription);
-        }else{
-            Log.e(TAG,"获取联系人为空异常：" + userId+"，peers：" + peers);
-            new Throwable("获取联系人为空异常：" + userId+"，peers：" + peers);
+        } else {
+            Log.e(TAG, "获取联系人为空异常：" + userId + "，peers：" + peers);
+            new Throwable("获取联系人为空异常：" + userId + "，peers：" + peers);
         }
 
 
@@ -220,9 +221,9 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (peer != null) {
             IceCandidate iceCandidate = new IceCandidate(id, label, candidate);
             peer.addRemoteIceCandidate(iceCandidate);
-        }else{
-            Log.e(TAG,"获取联系人为空异常：" + userId+"，peers：" + peers);
-            new Throwable("获取联系人为空异常：" + userId+"，peers：" + peers);
+        } else {
+            Log.e(TAG, "获取联系人为空异常：" + userId + "，peers：" + peers);
+            new Throwable("获取联系人为空异常：" + userId + "，peers：" + peers);
         }
     }
 
@@ -253,7 +254,13 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             return null;
         }
         ProxyVideoSink localSink = new ProxyVideoSink();
-        if (LLVisionGlass3SDK.getInstance().isServiceConnected()) {
+        int size = 0;
+        try {
+            size = LLVisionGlass3SDK.getInstance().getGlass3DeviceList().size();
+        } catch (GlassException e) {
+            e.printStackTrace();
+        }
+        if (size > 0) {
             usbRenderer = new TextureViewRenderer(mContext);
             usbRenderer.init(mRootEglBase.getEglBaseContext(), null);
             usbRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
@@ -263,7 +270,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
                 _localStream.videoTracks.get(0).addSink(localSink);
             }
             return usbRenderer;
-        }else{
+        } else {
             localRenderer = new SurfaceViewRenderer(mContext);
             localRenderer.init(mRootEglBase.getEglBaseContext(), null);
             localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
@@ -311,7 +318,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             localRenderer.release();
             localRenderer = null;
         }
-        if (usbRenderer != null){
+        if (usbRenderer != null) {
             usbRenderer.release();
             usbRenderer = null;
         }
@@ -483,11 +490,11 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     }
 
     @Override
-    public boolean sendMessage(byte[] message,boolean binary) {
+    public boolean sendMessage(byte[] message, boolean binary) {
         boolean isSend = false;
-        for(Peer peer : peers.values()){
-            isSend = peer.sendMsg(message,binary);
-            if(!isSend){
+        for (Peer peer : peers.values()) {
+            isSend = peer.sendMsg(message, binary);
+            if (!isSend) {
                 return false;
             }
         }
@@ -495,11 +502,11 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     }
 
     @Override
-    public void setDataChannelListener(DataChannelListener Listener){
-        if(dataChannelListener == null) {
+    public void setDataChannelListener(DataChannelListener Listener) {
+        if (dataChannelListener == null) {
             dataChannelListener = Listener;
         }
-        for(Peer peer : peers.values()){
+        for (Peer peer : peers.values()) {
             peer.setDataChannelListener(Listener);
         }
     }
@@ -603,8 +610,17 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
 
         if (Camera2Enumerator.isSupported(mContext)) {
             //TODO 这里还要考虑一个外接摄像头的方案
-//            videoCapturer = createCameraCapture(new Camera2Enumerator(mContext));
-            videoCapturer = createCameraCapture(new CameraUsbEnumerator(mContext));
+            int size = 0;
+            try {
+                size = LLVisionGlass3SDK.getInstance().getGlass3DeviceList().size();
+            } catch (GlassException e) {
+                e.printStackTrace();
+            }
+            if (size > 0) {
+                videoCapturer = createCameraCapture(new CameraUsbEnumerator(mContext));
+            } else {
+                videoCapturer = createCameraCapture(new Camera2Enumerator(mContext));
+            }
         } else {
             videoCapturer = createCameraCapture(new Camera1Enumerator(true));
         }

@@ -20,19 +20,15 @@ import android.widget.Toast;
 
 import androidx.fragment.app.FragmentManager;
 
-import com.llvision.glass3.core.camera.client.ICameraClient;
-import com.llvision.glass3.platform.IGlass3Device;
-import com.llvision.glass3.platform.LLVisionGlass3SDK;
-import com.perry.App;
-import com.perry.core.base.BaseActivity;
-import com.perry.permission.Permissions;
 import com.dds.skywebrtc.CallSession;
 import com.dds.skywebrtc.EnumType;
 import com.dds.skywebrtc.SkyEngineKit;
 import com.dds.skywebrtc.except.NotInitializedException;
 import com.lianyun.webrtc.R;
+import com.perry.App;
+import com.perry.core.base.BaseActivity;
+import com.perry.permission.Permissions;
 
-import java.util.List;
 import java.util.UUID;
 
 
@@ -62,8 +58,6 @@ public class CallSingleActivity extends BaseActivity implements CallSession.Call
     // 监听耳机广播 （todo 还有些问题）
     protected HeadsetPlugReceiver headsetPlugReceiver;
 
-    IGlass3Device mGlass3Device;
-    ICameraClient mCameraClient;
 
     public static Intent getCallIntent(Context context, String targetId, boolean isOutgoing, String inviteUserName,
                                        boolean isAudioOnly, boolean isClearTop) {
@@ -183,22 +177,6 @@ public class CallSingleActivity extends BaseActivity implements CallSession.Call
                     .commit();
         }
 
-//        LLVisionGlass3SDK.getInstance().registerConnectionListener(mConnectionStatusListener);
-        try {
-            if (LLVisionGlass3SDK.getInstance().isServiceConnected()) {
-                List<IGlass3Device> glass3DeviceList = LLVisionGlass3SDK.getInstance()
-                        .getGlass3DeviceList();
-                if (glass3DeviceList != null && glass3DeviceList.size() > 0) {
-                    mGlass3Device = glass3DeviceList.get(0);
-//                    mFovArray = mGlass3Device.getUsbDeviceProductId() >= DeviceFilter.DeviceConnectID.LLV_G40_MAIN_PID ? FOV2 : FOV1;
-                    mCameraClient = (ICameraClient) LLVisionGlass3SDK.getInstance().getGlass3Client(IGlass3Device.Glass3DeviceClient.CAMERA);
-//                    checkFirmwareInfo(mGlass3Device.getFirmwareInfo().projectName);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         if (outgoing && !isReplace) {
             // 创建会话
             room = UUID.randomUUID().toString() + System.currentTimeMillis();
@@ -304,7 +282,7 @@ public class CallSingleActivity extends BaseActivity implements CallSession.Call
 
     @Override
     public void didError(String var1) {
-        Log.d(TAG,"didError:"+var1);
+        Log.d(TAG, "didError:" + var1);
         handler.post(() -> currentFragment.didError(var1));
     }
 
