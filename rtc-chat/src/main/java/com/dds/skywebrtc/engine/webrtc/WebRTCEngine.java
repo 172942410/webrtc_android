@@ -20,7 +20,6 @@ import com.dds.skywebrtc.render.ProxyVideoSink;
 import com.llvision.glass3.platform.GlassException;
 import com.llvision.glass3.platform.LLVisionGlass3SDK;
 import com.perry.webrtc.usb.CameraUsbEnumerator;
-import com.perry.webrtc.usb.TextureViewRenderer;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -65,7 +64,6 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     private VideoCapturer captureAndroid;
     private SurfaceTextureHelper surfaceTextureHelper;
     private SurfaceViewRenderer localRenderer;
-    private TextureViewRenderer usbRenderer;
 
     private static final String VIDEO_TRACK_ID = "ARDAMSv0";
     private static final String AUDIO_TRACK_ID = "ARDAMSa0";
@@ -254,34 +252,16 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             return null;
         }
         ProxyVideoSink localSink = new ProxyVideoSink();
-        int size = 0;
-        try {
-            size = LLVisionGlass3SDK.getInstance().getGlass3DeviceList().size();
-        } catch (GlassException e) {
-            e.printStackTrace();
+        localRenderer = new SurfaceViewRenderer(mContext);
+        localRenderer.init(mRootEglBase.getEglBaseContext(), null);
+        localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+        localRenderer.setMirror(false);
+        localRenderer.setZOrderMediaOverlay(isOverlay);
+        localSink.setTarget(localRenderer);
+        if (_localStream.videoTracks.size() > 0) {
+            _localStream.videoTracks.get(0).addSink(localSink);
         }
-        if (size > 0) {
-            usbRenderer = new TextureViewRenderer(mContext);
-            usbRenderer.init(mRootEglBase.getEglBaseContext(), null);
-            usbRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-            usbRenderer.setMirror(false);
-            localSink.setTarget(usbRenderer);
-            if (_localStream.videoTracks.size() > 0) {
-                _localStream.videoTracks.get(0).addSink(localSink);
-            }
-            return usbRenderer;
-        } else {
-            localRenderer = new SurfaceViewRenderer(mContext);
-            localRenderer.init(mRootEglBase.getEglBaseContext(), null);
-            localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-            localRenderer.setMirror(false);
-            localRenderer.setZOrderMediaOverlay(isOverlay);
-            localSink.setTarget(localRenderer);
-            if (_localStream.videoTracks.size() > 0) {
-                _localStream.videoTracks.get(0).addSink(localSink);
-            }
-            return localRenderer;
-        }
+        return localRenderer;
     }
 
     @Override
@@ -317,10 +297,6 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
         if (localRenderer != null) {
             localRenderer.release();
             localRenderer = null;
-        }
-        if (usbRenderer != null) {
-            usbRenderer.release();
-            usbRenderer = null;
         }
     }
 

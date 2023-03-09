@@ -18,7 +18,6 @@ import com.dds.skywebrtc.SkyEngineKit;
 import com.lianyun.webrtc.R;
 import com.perry.core.util.BarUtils;
 import com.perry.core.util.OSUtils;
-import com.perry.webrtc.usb.TextureViewRenderer;
 
 import org.webrtc.RendererCommon;
 import org.webrtc.SurfaceViewRenderer;
@@ -43,7 +42,6 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
     private FrameLayout pipRenderer;
     private LinearLayout inviteeInfoContainer;
     private boolean isFromFloatingView = false;
-    private TextureViewRenderer usbTextureView;
     private SurfaceViewRenderer localSurfaceView;
     private SurfaceViewRenderer remoteSurfaceView;
 
@@ -142,14 +140,9 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
                     View surfaceView = gEngineKit.getCurrentSession().setupLocalVideo(false);
                     Log.d(TAG, "init surfaceView != null is " + (surfaceView != null) + "; isOutgoing = " + isOutgoing + "; currentState = " + currentState);
                     if (surfaceView != null) {
-                        if (surfaceView instanceof TextureViewRenderer) {
-                            usbTextureView = (TextureViewRenderer) surfaceView;
-                            fullscreenRenderer.addView(usbTextureView);
-                        } else {
-                            localSurfaceView = (SurfaceViewRenderer) surfaceView;
-                            localSurfaceView.setZOrderMediaOverlay(false);
-                            fullscreenRenderer.addView(localSurfaceView);
-                        }
+                        localSurfaceView = (SurfaceViewRenderer) surfaceView;
+                        localSurfaceView.setZOrderMediaOverlay(false);
+                        fullscreenRenderer.addView(localSurfaceView);
                     }
                 }
             }
@@ -191,14 +184,10 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
 
     @Override
     public void didCreateLocalVideoTrack() {
-        if (localSurfaceView == null || usbTextureView == null) {
+        if (localSurfaceView == null) {
             View surfaceView = gEngineKit.getCurrentSession().setupLocalVideo(true);
             if (surfaceView != null) {
-                if (surfaceView instanceof TextureViewRenderer) {
-                    usbTextureView = (TextureViewRenderer) surfaceView;
-                } else {
-                    localSurfaceView = (SurfaceViewRenderer) surfaceView;
-                }
+                localSurfaceView = (SurfaceViewRenderer) surfaceView;
             } else {
                 if (callSingleActivity != null) callSingleActivity.finish();
                 return;
@@ -211,19 +200,7 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
         Log.d(TAG,
                 "didCreateLocalVideoTrack localSurfaceView != null is " + (localSurfaceView != null) + "; remoteSurfaceView == null = " + (remoteSurfaceView == null)
         );
-        if (usbTextureView != null) {
-            if (usbTextureView.getParent() != null) {
-                ((ViewGroup) usbTextureView.getParent()).removeView(usbTextureView);
-            }
-            if (isOutgoing && remoteSurfaceView == null) {
-                if (fullscreenRenderer != null && fullscreenRenderer.getChildCount() != 0)
-                    fullscreenRenderer.removeAllViews();
-                fullscreenRenderer.addView(usbTextureView);
-            } else {
-                if (pipRenderer.getChildCount() != 0) pipRenderer.removeAllViews();
-                pipRenderer.addView(usbTextureView);
-            }
-        } else if (localSurfaceView != null) {
+        if (localSurfaceView != null) {
             if (localSurfaceView.getParent() != null) {
                 ((ViewGroup) localSurfaceView.getParent()).removeView(localSurfaceView);
             }
@@ -314,19 +291,11 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
             if (isFullScreenRemote) {
                 pipRenderer.addView(remoteSurfaceView);
                 remoteSurfaceView.setZOrderMediaOverlay(true);
-                if (usbTextureView != null) {
-                    fullscreenRenderer.addView(usbTextureView);
-                } else {
-                    localSurfaceView.setZOrderMediaOverlay(false);
-                    fullscreenRenderer.addView(localSurfaceView);
-                }
+                localSurfaceView.setZOrderMediaOverlay(false);
+                fullscreenRenderer.addView(localSurfaceView);
             } else {
-                if (usbTextureView != null) {
-                    pipRenderer.addView(usbTextureView);
-                } else {
-                    localSurfaceView.setZOrderMediaOverlay(true);
-                    pipRenderer.addView(localSurfaceView);
-                }
+                localSurfaceView.setZOrderMediaOverlay(true);
+                pipRenderer.addView(localSurfaceView);
                 fullscreenRenderer.addView(remoteSurfaceView);
                 remoteSurfaceView.setZOrderMediaOverlay(false);
             }
