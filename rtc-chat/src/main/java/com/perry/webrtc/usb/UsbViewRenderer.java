@@ -17,7 +17,8 @@ import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+
+import com.llvision.glxss.common.ui.CameraTextureView;
 
 import org.webrtc.EglBase;
 import org.webrtc.EglRenderer;
@@ -32,13 +33,14 @@ import org.webrtc.VideoSink;
 /**
  * Display the video stream on a SurfaceView.
  */
-public class TextureViewRenderer extends SurfaceView
+public class UsbViewRenderer extends CameraTextureView
         implements SurfaceHolder.Callback, VideoSink, RendererCommon.RendererEvents {
-  private static final String TAG = "TextureViewRenderer";
+  private static final String TAG = "SurfaceViewRenderer";
 
   // Cached resource name.
   private final String resourceName;
-  private final RendererCommon.VideoLayoutMeasure videoLayoutMeasure = new RendererCommon.VideoLayoutMeasure();
+  private final RendererCommon.VideoLayoutMeasure videoLayoutMeasure =
+          new RendererCommon.VideoLayoutMeasure();
   private final SurfaceEglRenderer eglRenderer;
 
   // Callback for reporting renderer events. Read-only after initilization so no lock required.
@@ -54,23 +56,23 @@ public class TextureViewRenderer extends SurfaceView
   /**
    * Standard View constructor. In order to render something, you must first call init().
    */
-  public TextureViewRenderer(Context context) {
+  public UsbViewRenderer(Context context) {
     super(context);
     this.resourceName = getResourceName();
     eglRenderer = new SurfaceEglRenderer(resourceName);
-    getHolder().addCallback(this);
-    getHolder().addCallback(eglRenderer);
+//    getHolder().addCallback(this);
+//    getHolder().addCallback(eglRenderer);
   }
 
   /**
    * Standard View constructor. In order to render something, you must first call init().
    */
-  public TextureViewRenderer(Context context, AttributeSet attrs) {
+  public UsbViewRenderer(Context context, AttributeSet attrs) {
     super(context, attrs);
     this.resourceName = getResourceName();
     eglRenderer = new SurfaceEglRenderer(resourceName);
-    getHolder().addCallback(this);
-    getHolder().addCallback(eglRenderer);
+//    getHolder().addCallback(this);
+//    getHolder().addCallback(eglRenderer);
   }
 
   /**
@@ -236,11 +238,11 @@ public class TextureViewRenderer extends SurfaceView
       if (width != surfaceWidth || height != surfaceHeight) {
         surfaceWidth = width;
         surfaceHeight = height;
-        getHolder().setFixedSize(width, height);
+//        getHolder().setFixedSize(width, height);
       }
     } else {
       surfaceWidth = surfaceHeight = 0;
-      getHolder().setSizeFromLayout();
+//      getHolder().setSizeFromLayout();
     }
   }
 

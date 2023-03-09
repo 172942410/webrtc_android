@@ -264,7 +264,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             usbRenderer = new TextureViewRenderer(mContext);
             usbRenderer.init(mRootEglBase.getEglBaseContext(), null);
             usbRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-            usbRenderer.setMirror(true);
+            usbRenderer.setMirror(false);
             localSink.setTarget(usbRenderer);
             if (_localStream.videoTracks.size() > 0) {
                 _localStream.videoTracks.get(0).addSink(localSink);
@@ -274,7 +274,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
             localRenderer = new SurfaceViewRenderer(mContext);
             localRenderer.init(mRootEglBase.getEglBaseContext(), null);
             localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-            localRenderer.setMirror(true);
+            localRenderer.setMirror(false);
             localRenderer.setZOrderMediaOverlay(isOverlay);
             localSink.setTarget(localRenderer);
             if (_localStream.videoTracks.size() > 0) {

@@ -152,7 +152,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 //        renderer.setEnableHardwareScaler(true);
         renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
 //        renderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_BALANCED);
-        renderer.setMirror(true);
+        renderer.setMirror(false);
         renderer.setZOrderMediaOverlay(isOverlay);
         sink = new ProxyVideoSink();
         sink.setTarget(renderer);

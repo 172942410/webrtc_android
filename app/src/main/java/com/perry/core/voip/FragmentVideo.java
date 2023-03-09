@@ -46,7 +46,6 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
     private TextureViewRenderer usbTextureView;
     private SurfaceViewRenderer localSurfaceView;
     private SurfaceViewRenderer remoteSurfaceView;
-//    private CameraTextureView cameraTextureView;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -64,9 +63,6 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
     @Override
     public void initView(View view) {
         super.initView(view);
-//        cameraTextureView = view.findViewById(R.id.camera_view);
-//        cameraTextureView.setSurfaceCallback(mSurfaceCallback);
-
         fullscreenRenderer = view.findViewById(R.id.fullscreen_video_view);
         pipRenderer = view.findViewById(R.id.pip_video_view);
         inviteeInfoContainer = view.findViewById(R.id.inviteeInfoContainer);
@@ -316,8 +312,8 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
             fullscreenRenderer.removeAllViews();
             pipRenderer.removeAllViews();
             if (isFullScreenRemote) {
-                remoteSurfaceView.setZOrderMediaOverlay(true);
                 pipRenderer.addView(remoteSurfaceView);
+                remoteSurfaceView.setZOrderMediaOverlay(true);
                 if (usbTextureView != null) {
                     fullscreenRenderer.addView(usbTextureView);
                 } else {
@@ -331,8 +327,8 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
                     localSurfaceView.setZOrderMediaOverlay(true);
                     pipRenderer.addView(localSurfaceView);
                 }
-                remoteSurfaceView.setZOrderMediaOverlay(false);
                 fullscreenRenderer.addView(remoteSurfaceView);
+                remoteSurfaceView.setZOrderMediaOverlay(false);
             }
         }
 
