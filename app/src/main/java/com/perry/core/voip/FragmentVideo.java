@@ -199,7 +199,7 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
         }
         try {
             mGlass3Device = LLVisionGlass3SDK.getInstance().getGlass3DeviceList().get(0);
-        } catch (GlassException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         glassKeyEvent();
@@ -341,7 +341,7 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
      * 眼镜的按键事件监听
      */
     private void glassKeyEvent(){
-        if(iKeyEventClient == null) {
+        if(iKeyEventClient == null && mGlass3Device != null) {
             try {
                 iKeyEventClient = (IKeyEventClient) LLVisionGlass3SDK.getInstance().getGlass3Client(IGlass3Device.Glass3DeviceClient.KEY);
                 iGlassKeyEvent = iKeyEventClient.getGlassKeyEvent(mGlass3Device);
@@ -353,21 +353,21 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
             iGlassKeyEvent.setOnGlxssFnClickListener(new IGlassKeyEvent.OnGlxssClickListener() {
                 @Override
                 public void onClick(int i) {
-                    Log.d(TAG,"单击按钮:"+i);
+//                    如果imageview为空则显示录屏界面；如果存在则显示传递过来的图片
                     show2Glass(imageView);
                 }
             });
             iGlassKeyEvent.setOnGlxssFnDoubleClickListener(new IGlassKeyEvent.OnGlxssDoubleClickListener() {
                 @Override
                 public void onDoubleClick(int i) {
-                    Log.d(TAG,"双击:"+i);
+//                    显示小窗的界面 一般为本地视频界面
                     show2Glass(pipRenderer);
                 }
             });
             iGlassKeyEvent.setOnGlxssFnLongClickListener(new IGlassKeyEvent.OnGlxssLongClickListener() {
                 @Override
                 public void onLongClick(int i) {
-                    Log.d(TAG,"长按:"+i);
+//                    显示全屏的界面 一般为远程视频界面
                     show2Glass(fullscreenRenderer);
                 }
             });
@@ -379,7 +379,7 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
      * @param showView
      */
     private void show2Glass(View showView) {
-        if(iGlassDisplay == null) {
+        if(iGlassDisplay == null && mGlass3Device !=null) {
             try {
                 ILCDClient ilcdClient = (ILCDClient) LLVisionGlass3SDK.getInstance().getGlass3Client(IGlass3Device.Glass3DeviceClient.LCD);
                 iGlassDisplay = ilcdClient.getGlassDisplay(mGlass3Device);
