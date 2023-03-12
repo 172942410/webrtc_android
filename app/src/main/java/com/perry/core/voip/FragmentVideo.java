@@ -1,7 +1,10 @@
 package com.perry.core.voip;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,13 +12,24 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import com.dds.skywebrtc.CallSession;
 import com.dds.skywebrtc.EnumType.CallState;
 import com.dds.skywebrtc.SkyEngineKit;
+import com.dds.skywebrtc.engine.DataChannelListener;
 import com.lianyun.webrtc.R;
+import com.lianyun.webrtc.utils.Base64Util;
+import com.llvision.glass3.core.key.client.IGlassKeyEvent;
+import com.llvision.glass3.core.key.client.IKeyEventClient;
+import com.llvision.glass3.core.lcd.client.IGlassDisplay;
+import com.llvision.glass3.core.lcd.client.ILCDClient;
+import com.llvision.glass3.platform.GlassException;
+import com.llvision.glass3.platform.IGlass3Device;
+import com.llvision.glass3.platform.LLVisionGlass3SDK;
+import com.perry.core.socket.SocketManager;
 import com.perry.core.util.BarUtils;
 import com.perry.core.util.OSUtils;
 
@@ -44,6 +58,36 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
     private boolean isFromFloatingView = false;
     private SurfaceViewRenderer localSurfaceView;
     private SurfaceViewRenderer remoteSurfaceView;
+    IGlass3Device mGlass3Device;
+    IGlassDisplay iGlassDisplay;//
+    IKeyEventClient iKeyEventClient;
+    IGlassKeyEvent iGlassKeyEvent;
+
+    SocketManager socketManager;
+    ImageView imageView;
+
+    Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(@NonNull Message msg) {
+            if (msg.what == 0) {
+                if(msg.obj instanceof Bitmap){
+                    imageView = new ImageView(getActivity());
+                    imageView.setImageBitmap((Bitmap) msg.obj);
+                    show2Glass(imageView);
+                }else {
+
+                }
+//                messageAdapter.notifyDataSetChanged();
+//                recyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
+//                uriLocal = null;
+            } else if (msg.what == -1) {
+                Toast.makeText(getActivity(), "发送失败，请检查webRTC链接情况", Toast.LENGTH_SHORT).show();
+            } else if (msg.what == -2) {
+                Toast.makeText(getActivity(), "发送失败，请初始化链接情况", Toast.LENGTH_SHORT).show();
+            }
+            return false;
+        }
+    });
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -153,6 +197,53 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
                 didReceiveRemoteVideoTrack(session.mTargetId);
             }
         }
+        try {
+            mGlass3Device = LLVisionGlass3SDK.getInstance().getGlass3DeviceList().get(0);
+        } catch (GlassException e) {
+            e.printStackTrace();
+        }
+        glassKeyEvent();
+        socketManager = SocketManager.getInstance();
+        socketManager.setDataChannelListener(new DataChannelListener() {
+            @Override
+            public void onReceiveBinaryMessage(String socketId, String message, byte[] data) {
+                Log.d(TAG, "onReceiveBinaryMessage socketId:" + socketId + ",message:" + message);
+                Bitmap bitmap = Base64Util.base64ToBitmap(data);
+//                messageAdapter.addItemBitmap(bitmap);
+                Message msg = new Message();
+                msg.obj = bitmap;
+                msg.what = 0;
+                handler.sendMessage(msg);
+            }
+
+            @Override
+            public void onReceiveMessage(String socketId, String message) {
+                Log.d(TAG, "onReceiveMessage socketId:" + socketId + ",message:" + message);
+//                messageAdapter.addItemLeftString(message);
+                handler.sendEmptyMessage(0);
+            }
+
+            @Override
+            public void onReceiveFileProgress(float progress) {
+                Log.d(TAG, "onReceiveFileProgress:" + progress);
+                handler.sendEmptyMessage(0);
+            }
+
+            @Override
+            public void onSendFailed() {
+                handler.sendEmptyMessage(-2);
+            }
+
+            @Override
+            public void onSendResult(boolean isSend, byte[] message, boolean binary) {
+                if (isSend) {
+                    //发送成功
+                    handler.sendEmptyMessage(0);
+                } else {
+                    handler.sendEmptyMessage(-1);
+                }
+            }
+        });
     }
 
     @Override
@@ -242,9 +333,66 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
             }
             fullscreenRenderer.addView(remoteSurfaceView);
             remoteSurfaceView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+//            show2Glass(null);
         }
     }
 
+    /**
+     * 眼镜的按键事件监听
+     */
+    private void glassKeyEvent(){
+        if(iKeyEventClient == null) {
+            try {
+                iKeyEventClient = (IKeyEventClient) LLVisionGlass3SDK.getInstance().getGlass3Client(IGlass3Device.Glass3DeviceClient.KEY);
+                iGlassKeyEvent = iKeyEventClient.getGlassKeyEvent(mGlass3Device);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if(iGlassKeyEvent != null){
+            iGlassKeyEvent.setOnGlxssFnClickListener(new IGlassKeyEvent.OnGlxssClickListener() {
+                @Override
+                public void onClick(int i) {
+                    Log.d(TAG,"单击按钮:"+i);
+                    show2Glass(imageView);
+                }
+            });
+            iGlassKeyEvent.setOnGlxssFnDoubleClickListener(new IGlassKeyEvent.OnGlxssDoubleClickListener() {
+                @Override
+                public void onDoubleClick(int i) {
+                    Log.d(TAG,"双击:"+i);
+                    show2Glass(pipRenderer);
+                }
+            });
+            iGlassKeyEvent.setOnGlxssFnLongClickListener(new IGlassKeyEvent.OnGlxssLongClickListener() {
+                @Override
+                public void onLongClick(int i) {
+                    Log.d(TAG,"长按:"+i);
+                    show2Glass(fullscreenRenderer);
+                }
+            });
+        }
+    }
+
+    /**
+     * 显示到眼镜里的界面view
+     * @param showView
+     */
+    private void show2Glass(View showView) {
+        if(iGlassDisplay == null) {
+            try {
+                ILCDClient ilcdClient = (ILCDClient) LLVisionGlass3SDK.getInstance().getGlass3Client(IGlass3Device.Glass3DeviceClient.LCD);
+                iGlassDisplay = ilcdClient.getGlassDisplay(mGlass3Device);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if(showView == null) {
+            iGlassDisplay.createCaptureScreen(getActivity());
+        }else{
+            iGlassDisplay.createCaptureScreen(getActivity(),showView);
+        }
+    }
     @Override
     public void didUserLeave(String userId) {
 
@@ -320,5 +468,9 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
         super.onDestroyView();
         fullscreenRenderer.removeAllViews();
         pipRenderer.removeAllViews();
+        if(iGlassDisplay != null){
+            iGlassDisplay.stopCaptureScreen();
+            iGlassDisplay = null;
+        }
     }
 }

@@ -318,18 +318,6 @@ class CameraUsbSession implements CameraSession {
             e.printStackTrace();
         }
 
-//        try {
-//            cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
-//        } catch (final CameraAccessException e) {
-//            reportError("getCameraCharacteristics(): " + e.getMessage());
-//            return;
-//        }
-//        cameraOrientation = cameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
-//        isCameraFrontFacing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING)
-//                == CameraMetadata.LENS_FACING_FRONT;
-
-//        openCamera();
-//        findCaptureFormat();
     }
 
     private void openCamera() {

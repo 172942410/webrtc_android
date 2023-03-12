@@ -319,10 +319,16 @@ public class ToWebActivity extends BaseActivity implements IUserState {
                 public void onDeviceConnect(final IGlass3Device device) {
                     mGlass3Device = device;
                     tvUsbState.setTextColor(Color.GREEN);
-                    tvUsbState.setText("设备已连接");
+                    tvUsbState.setText("外接眼镜已连接");
                     try {
                         if (device != null) {
                             readDeviceInfo(device);
+//                            ILCDClient ilcdClient = (ILCDClient)LLVisionGlass3SDK.getInstance().getGlass3Client(IGlass3Device.Glass3DeviceClient.LCD);
+//                            IGlassDisplay iGlassDisplay = ilcdClient.getGlassDisplay(device);
+//                            iGlassDisplay.createCaptureScreen(ToWebActivity.this);
+//                            下面在眼镜里显示了view之后就不在手机上显示了
+//                            iGlassDisplay.createCaptureScreen(ToWebActivity.this,recyclerView);
+
                         }
                     } catch (PackageManager.NameNotFoundException e) {
                         e.printStackTrace();
@@ -334,7 +340,7 @@ public class ToWebActivity extends BaseActivity implements IUserState {
                 @Override
                 public void onDeviceDisconnect(IGlass3Device device) {
                     tvUsbState.setTextColor(Color.RED);
-                    tvUsbState.setText("设备未连接");
+                    tvUsbState.setText("外接摄像头未连接");
 //                    mVersionTv.setText("");
                 }
 
