@@ -424,7 +424,7 @@ class CameraUsbSession implements CameraSession {
 
     private void stopInternal() {
         Logging.d(TAG, "Stop internal");
-        checkIsOnCameraThread();
+//        checkIsOnCameraThread();
         surfaceTextureHelper.stopListening();
         if (surface != null) {
             surface.release();

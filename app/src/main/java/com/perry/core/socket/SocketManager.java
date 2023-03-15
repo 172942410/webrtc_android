@@ -20,6 +20,7 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,19 +40,22 @@ public class SocketManager implements IEvent {
     private String myId;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    DataChannelListener dataChannelListener;
+    ArrayList<DataChannelListener> dataChannelListeners;
 
     private SocketManager() {
-
+        dataChannelListeners = new ArrayList<>();
     }
 
     //接受消息的监听
-    public void setDataChannelListener(DataChannelListener listener) {
-        dataChannelListener = listener;
+    public void addDataChannelListener(DataChannelListener listener) {
+        if(!dataChannelListeners.contains(listener)) {
+            dataChannelListeners.add(listener);
+        }
+//        dataChannelListener = listener;
         handler.post(() -> {
             CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
             if (currentSession != null) {
-                currentSession.setDataChannelListener(listener);
+                currentSession.setDataChannelListener(dataChannelListeners);
             }
         });
     }
@@ -272,7 +276,7 @@ public class SocketManager implements IEvent {
             //自己进入了房间，然后开始发送offer
             CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
             if (currentSession != null) {
-                currentSession.setDataChannelListener(dataChannelListener);
+                currentSession.setDataChannelListener(dataChannelListeners);
                 currentSession.onJoinHome(myId, connections, roomSize);
             }
         });
@@ -284,7 +288,7 @@ public class SocketManager implements IEvent {
         handler.post(() -> {
             CallSession currentSession = SkyEngineKit.Instance().getCurrentSession();
             if (currentSession != null) {
-                currentSession.setDataChannelListener(dataChannelListener);
+                currentSession.setDataChannelListener(dataChannelListeners);
                 currentSession.newPeer(userId);
             }
         });
@@ -407,7 +411,9 @@ public class SocketManager implements IEvent {
                 currentSession.sendMessage(message, true);
             } else {
                 // 发送失败
-                dataChannelListener.onSendFailed();
+                for(DataChannelListener dataChannelListener : dataChannelListeners) {
+                    dataChannelListener.onSendFailed();
+                }
             }
         });
     }
@@ -421,7 +427,9 @@ public class SocketManager implements IEvent {
             if (currentSession != null) {
                 currentSession.sendMessage(messageTime.getBytes(), false);
             } else {
-                dataChannelListener.onSendFailed();
+                for(DataChannelListener dataChannelListener : dataChannelListeners) {
+                    dataChannelListener.onSendFailed();
+                }
             }
         });
     }

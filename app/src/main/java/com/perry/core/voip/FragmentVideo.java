@@ -12,7 +12,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -26,7 +25,6 @@ import com.llvision.glass3.core.key.client.IGlassKeyEvent;
 import com.llvision.glass3.core.key.client.IKeyEventClient;
 import com.llvision.glass3.core.lcd.client.IGlassDisplay;
 import com.llvision.glass3.core.lcd.client.ILCDClient;
-import com.llvision.glass3.platform.GlassException;
 import com.llvision.glass3.platform.IGlass3Device;
 import com.llvision.glass3.platform.LLVisionGlass3SDK;
 import com.perry.core.socket.SocketManager;
@@ -71,9 +69,13 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
         public boolean handleMessage(@NonNull Message msg) {
             if (msg.what == 0) {
                 if(msg.obj instanceof Bitmap){
-                    imageView = new ImageView(getActivity());
-                    imageView.setImageBitmap((Bitmap) msg.obj);
-                    show2Glass(imageView);
+                    try {
+                        imageView = new ImageView(getActivity());
+                        imageView.setImageBitmap((Bitmap) msg.obj);
+                        show2Glass(imageView);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }else {
 
                 }
@@ -81,9 +83,9 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
 //                recyclerView.smoothScrollToPosition(messageAdapter.getItemCount() - 1);
 //                uriLocal = null;
             } else if (msg.what == -1) {
-                Toast.makeText(getActivity(), "发送失败，请检查webRTC链接情况", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getActivity(), "发送失败，请检查webRTC链接情况", Toast.LENGTH_SHORT).show();
             } else if (msg.what == -2) {
-                Toast.makeText(getActivity(), "发送失败，请初始化链接情况", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getActivity(), "发送失败，请初始化链接情况", Toast.LENGTH_SHORT).show();
             }
             return false;
         }
@@ -204,7 +206,7 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
         }
         glassKeyEvent();
         socketManager = SocketManager.getInstance();
-        socketManager.setDataChannelListener(new DataChannelListener() {
+        socketManager.addDataChannelListener(new DataChannelListener() {
             @Override
             public void onReceiveBinaryMessage(String socketId, String message, byte[] data) {
                 Log.d(TAG, "onReceiveBinaryMessage socketId:" + socketId + ",message:" + message);
@@ -320,7 +322,6 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
             }
         }
 
-
         View surfaceView = gEngineKit.getCurrentSession().setupRemoteVideo(userId, false);
         Log.d(TAG, "didReceiveRemoteVideoTrack,surfaceView = " + surfaceView);
         if (surfaceView != null) {
@@ -355,6 +356,16 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
                 public void onClick(int i) {
 //                    如果imageview为空则显示录屏界面；如果存在则显示传递过来的图片
                     show2Glass(imageView);
+//                    if(glassView == null){
+//                        glassView = fullscreenRenderer;
+//                    }else if(glassView != null && glassView == imageView ){
+//                        glassView = fullscreenRenderer;
+//                    }else if(glassView != null && glassView == pipRenderer ){
+//                        glassView = imageView;
+//                    }else if(glassView != null && glassView == fullscreenRenderer ){
+//                        glassView = pipRenderer;
+//                    }
+//                    show2Glass(glassView);
                 }
             });
             iGlassKeyEvent.setOnGlxssFnDoubleClickListener(new IGlassKeyEvent.OnGlxssDoubleClickListener() {

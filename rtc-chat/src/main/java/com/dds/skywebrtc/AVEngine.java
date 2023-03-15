@@ -7,6 +7,7 @@ import com.dds.skywebrtc.engine.DataChannelListener;
 import com.dds.skywebrtc.engine.EngineCallback;
 import com.dds.skywebrtc.engine.IEngine;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AVEngine implements IEngine {
@@ -203,11 +204,11 @@ public class AVEngine implements IEngine {
     }
 
     @Override
-    public void setDataChannelListener(DataChannelListener listener) {
+    public void setDataChannelListener(ArrayList<DataChannelListener> dataChannelListeners) {
         if (iEngine == null) {
             return;
         }
-        iEngine.setDataChannelListener(listener);
+        iEngine.setDataChannelListener(dataChannelListeners);
     }
 
 }

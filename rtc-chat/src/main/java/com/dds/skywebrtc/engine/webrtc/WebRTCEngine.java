@@ -84,7 +84,7 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     private AudioManager audioManager;
     private boolean isSpeakerOn = true;
 
-    DataChannelListener dataChannelListener;
+    ArrayList<DataChannelListener> dataChannelListener;
 
     public WebRTCEngine(boolean mIsAudioOnly, Context mContext) {
         this.mIsAudioOnly = mIsAudioOnly;
@@ -478,12 +478,12 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
     }
 
     @Override
-    public void setDataChannelListener(DataChannelListener Listener) {
+    public void setDataChannelListener(ArrayList<DataChannelListener> listeners) {
         if (dataChannelListener == null) {
-            dataChannelListener = Listener;
+            dataChannelListener = listeners;
         }
         for (Peer peer : peers.values()) {
-            peer.setDataChannelListener(Listener);
+            peer.setDataChannelListener(listeners);
         }
     }
 
@@ -494,9 +494,15 @@ public class WebRTCEngine implements IEngine, Peer.IPeerEvent {
 //        PeerConnection.IceServer var1 = PeerConnection.IceServer.builder("stun:stun.l.google.com:19302")
 //                .createIceServer();
 //        iceServers.add(var1);
+
+//        PeerConnection.IceServer var1 = PeerConnection.IceServer.builder("stun:183.66.138.222:3478").createIceServer();
+//        iceServers.add(var1);
+//        PeerConnection.IceServer var2 = PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer();
+//        iceServers.add(var2);
+//        PeerConnection.IceServer var3 = PeerConnection.IceServer.builder("stun:global.stun.twilio.com:3478?transport=udp").createIceServer();
+//        iceServers.add(var3);
 //
-//        PeerConnection.IceServer var11 = PeerConnection.IceServer.builder("stun:42.192.40.58:3478?transport=udp")
-//                .createIceServer();
+//        PeerConnection.IceServer var11 = PeerConnection.IceServer.builder("stun:42.192.40.58:3478?transport=udp").createIceServer();
 //        PeerConnection.IceServer var12 = PeerConnection.IceServer.builder("turn:42.192.40.58:3478?transport=udp")
 //                .setUsername("ddssingsong")
 //                .setPassword("123456")

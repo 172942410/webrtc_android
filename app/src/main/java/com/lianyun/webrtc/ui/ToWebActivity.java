@@ -56,12 +56,8 @@ import com.perry.core.socket.IUserState;
 import com.perry.core.socket.SocketManager;
 import com.perry.core.voip.CallSingleActivity;
 
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
-
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -143,7 +139,7 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         recyclerView.setAdapter(messageAdapter);
 
         socketManager = SocketManager.getInstance();
-        socketManager.setDataChannelListener(new DataChannelListener() {
+        socketManager.addDataChannelListener(new DataChannelListener() {
             @Override
             public void onReceiveBinaryMessage(String socketId, String message, byte[] data) {
                 Log.d(TAG, "onReceiveBinaryMessage socketId:" + socketId + ",message:" + message);
@@ -476,8 +472,10 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         socketManager.addUserStateCallback(this);
 //        // 连接socket:登录
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
-        String localPeerId = "windows";
-        String remotePeerId = "hololens";
+//        String localPeerId = "windows";
+//        String remotePeerId = "hololens";
+        String localPeerId = "zhaozy";
+        String remotePeerId = "zhaozy1";
         socketManager.connectHttp(Urls.URL_HOST, localPeerId, remotePeerId);
 //        windows hololens
 //        CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
@@ -508,7 +506,7 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 
     public void callVideo(View view) {
         String username = etAdd.getText().toString().trim();
-        username = "windows";
+        username = "zhaozy";
         if (TextUtils.isEmpty(username)) {
             Toast.makeText(this, "请输入用户名", Toast.LENGTH_LONG).show();
             return;
@@ -520,8 +518,10 @@ public class ToWebActivity extends BaseActivity implements IUserState {
         socketManager.addUserStateCallback(this);
 //        // 连接socket:登录
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
-        String localPeerId = "hololens";
-        String remotePeerId = "windows";
+//        String localPeerId = "hololens";
+//        String remotePeerId = "windows";
+        String localPeerId = "zhaozy1";
+        String remotePeerId = "zhaozy";
         socketManager.connectHttp(Urls.URL_HOST, localPeerId, remotePeerId);
 //        windows hololens
         CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);

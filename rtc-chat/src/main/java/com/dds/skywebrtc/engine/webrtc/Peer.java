@@ -44,7 +44,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 
     DataChannel dataChannel;//发生普通消息需要的
     DataChannel.Init dataChannelInit;
-    DataChannelListener dataChannelListener;
+    ArrayList<DataChannelListener> dataChannelListener;
 
     public Peer(PeerConnectionFactory factory, List<PeerConnection.IceServer> list, String userId, IPeerEvent event) {
         mFactory = factory;
@@ -384,7 +384,9 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                         data.get(bytes);
                         if (dataChannelListener != null) {
                             if (buffer.binary) { //是二进制数据
-                                dataChannelListener.onReceiveBinaryMessage(socketId, "", bytes);
+                                for(DataChannelListener listener:dataChannelListener) {
+                                    listener.onReceiveBinaryMessage(socketId, "", bytes);
+                                }
 //                                if (isHeader) {
 //                                    isHeader = false;//为false时就不是第一次，只有第一次需要检测文件后缀
 //                                    //检测文件后缀
@@ -421,7 +423,9 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                             } else {//不是二进制数据
                                 //此处接收的是非二进制数据
                                 String msg = new String(bytes);
-                                dataChannelListener.onReceiveMessage(socketId, msg);
+                                for(DataChannelListener listener : dataChannelListener) {
+                                    listener.onReceiveMessage(socketId, msg);
+                                }
                             }
                         }
                     } catch (Exception e) {
@@ -452,7 +456,9 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                 DataChannel.Buffer buffer = new DataChannel.Buffer(ByteBuffer.wrap(message), binary);
                 boolean isSend = dataChannel.send(buffer);
                 Log.d(TAG, "发送完成：" + isSend);
-                dataChannelListener.onSendResult(isSend, message, binary);
+                for(DataChannelListener listener : dataChannelListener) {
+                    listener.onSendResult(isSend, message, binary);
+                }
                 return isSend;
             }
         } else {
@@ -461,8 +467,8 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
         return false;
     }
 
-    void setDataChannelListener(DataChannelListener Listener) {
-        dataChannelListener = Listener;
+    void setDataChannelListener(ArrayList<DataChannelListener> Listeners) {
+        dataChannelListener = Listeners;
     }
 
     private MediaConstraints offerOrAnswerConstraint() {

@@ -5,6 +5,7 @@ import android.view.View;
 
 import com.dds.skywebrtc.EnumType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -121,5 +122,5 @@ public interface IEngine {
     //测试webRTC发送消息的时候添加
     boolean sendMessage(byte[]  message,boolean binary);
 
-    void setDataChannelListener(DataChannelListener listener);
+    void setDataChannelListener(ArrayList<DataChannelListener> dataChannelListeners);
 }

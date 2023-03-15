@@ -544,9 +544,9 @@ public class CallSession implements EngineCallback {
         this.mapOffer = map;
     }
 
-    public void setDataChannelListener(DataChannelListener listener) {
+    public void setDataChannelListener(ArrayList<DataChannelListener> dataChannelListeners) {
         executor.execute(() -> {
-            iEngine.setDataChannelListener(listener);
+            iEngine.setDataChannelListener(dataChannelListeners);
         });
     }
 
