@@ -151,7 +151,13 @@ public class ToWebActivity extends BaseActivity implements IUserState {
             @Override
             public void onReceiveMessage(String socketId, String message) {
                 Log.d(TAG, "onReceiveMessage socketId:" + socketId + ",message:" + message);
-                messageAdapter.addItemLeftString(message);
+                if(message.startsWith("data:image/png;base64,")){
+                    Bitmap bitmap = Base64Util.base64ToBitmap(message.replace("data:image/png;base64,",""));
+                    messageAdapter.addItemBitmap(bitmap);
+                }else{
+                    messageAdapter.addItemLeftString(message);
+                }
+
                 handler.sendEmptyMessage(0);
             }
 

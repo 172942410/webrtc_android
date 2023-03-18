@@ -87,16 +87,21 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 
     // 设置LocalDescription
     public void setLocalDescription(SessionDescription sdp) {
-        Log.d("dds_test", "setLocalDescription");
+        Log.d("dds_test", "setLocalDescription:"+sdp.description);
         if (pc == null) return;
+//        sdp.description = sdp.description + "";
         pc.setLocalDescription(this, sdp);
     }
 
     // 设置RemoteDescription
     public void setRemoteDescription(SessionDescription sdp) {
         if (pc == null) return;
-        Log.d("dds_test", "setRemoteDescription");
-        pc.setRemoteDescription(this, sdp);
+        Log.d("dds_test", "setRemoteDescription：" + sdp.description);
+//        String sdpString = sdp.description;
+        String sdpString = sdp.description.replace("webrtc-datachannel 1024","webrtc-datachannel 1024000");
+        SessionDescription remoteSdp = new SessionDescription(sdp.type, sdpString);
+        pc.setRemoteDescription(this, remoteSdp);
+//        pc.setRemoteDescription(this, sdp);
     }
 
     //添加本地流
@@ -254,7 +259,9 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
     @Override
     public void onCreateSuccess(SessionDescription origSdp) {
         Log.d(TAG, "sdp创建成功       " + origSdp.type);
-        String sdpString = origSdp.description;
+//        String sdpString = origSdp.description + "a=max-message-size:262144";
+        String sdpString = origSdp.description.replace("webrtc-datachannel 1024","webrtc-datachannel 1024000");
+//        String sdpString = origSdp.description;
         final SessionDescription sdp = new SessionDescription(origSdp.type, sdpString);
         localSdp = sdp;
         setLocalDescription(sdp);
@@ -420,11 +427,36 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 ////                                        dataChannelListener.onReceiveBinaryMessage(socketId, realPath);
 //                                    }
 //                                }
-                            } else {//不是二进制数据
+                            } else { //不是二进制数据
                                 //此处接收的是非二进制数据
                                 String msg = new String(bytes);
-                                for(DataChannelListener listener : dataChannelListener) {
-                                    listener.onReceiveMessage(socketId, msg);
+                                if(msg.startsWith("imageSection:")){
+                                    String section = msg.replace("imageSection:","");
+                                    if(section.contains("data:")){
+                                        section = section.substring(0,section.indexOf("data:"));
+                                    }
+                                    if(section.contains(".")){
+                                        section = section.substring(0,section.indexOf("."));
+                                    }
+                                    imageSection = Integer.parseInt(section);
+                                }
+                                if(imageSection > 0){
+                                    if(imageSectionBuilder == null){
+                                        imageSectionBuilder = new StringBuilder();
+                                    }else {
+                                        imageSectionBuilder.append(msg);
+                                        imageSection--;
+                                        if(imageSection == 0){
+                                            for (DataChannelListener listener : dataChannelListener) {
+                                                listener.onReceiveMessage(socketId, imageSectionBuilder.toString());
+                                            }
+                                            imageSectionBuilder = null;
+                                        }
+                                    }
+                                }else {
+                                        for (DataChannelListener listener : dataChannelListener) {
+                                            listener.onReceiveMessage(socketId, msg);
+                                        }
                                 }
                             }
                         }
@@ -437,6 +469,8 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
         return dataChannel;
     }
 
+    int imageSection = 0;
+    StringBuilder imageSectionBuilder;
     /**
      * 使用DataChannel发送普通消息
      *
