@@ -206,47 +206,55 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
         }
         glassKeyEvent();
         socketManager = SocketManager.getInstance();
-        socketManager.addDataChannelListener(new DataChannelListener() {
-            @Override
-            public void onReceiveBinaryMessage(String socketId, String message, byte[] data) {
-                Log.d(TAG, "onReceiveBinaryMessage socketId:" + socketId + ",message:" + message);
-                Bitmap bitmap = Base64Util.base64ToBitmap(data);
-//                messageAdapter.addItemBitmap(bitmap);
+        socketManager.addDataChannelListener(dataChannelListener);
+    }
+
+    DataChannelListener dataChannelListener =  new DataChannelListener() {
+        @Override
+        public void onReceiveBinaryMessage(String socketId, String message, byte[] data) {
+            Log.d(TAG, "onReceiveBinaryMessage socketId:" + socketId + ",message:" + message);
+            Bitmap bitmap = Base64Util.base64ToBitmap(data);
+            Message msg = new Message();
+            msg.obj = bitmap;
+            msg.what = 0;
+            handler.sendMessage(msg);
+        }
+
+        @Override
+        public void onReceiveMessage(String socketId, String message) {
+            Log.d(TAG, "onReceiveMessage socketId:" + socketId + ",message:" + message);
+            if(message.startsWith("data:image/jpeg;base64,")){
+                Bitmap bitmap = Base64Util.base64ToBitmap(message.replace("data:image/jpeg;base64,",""));
                 Message msg = new Message();
                 msg.obj = bitmap;
                 msg.what = 0;
                 handler.sendMessage(msg);
-            }
-
-            @Override
-            public void onReceiveMessage(String socketId, String message) {
-                Log.d(TAG, "onReceiveMessage socketId:" + socketId + ",message:" + message);
-//                messageAdapter.addItemLeftString(message);
+            }else{
                 handler.sendEmptyMessage(0);
             }
+        }
 
-            @Override
-            public void onReceiveFileProgress(float progress) {
-                Log.d(TAG, "onReceiveFileProgress:" + progress);
+        @Override
+        public void onReceiveFileProgress(float progress) {
+            Log.d(TAG, "onReceiveFileProgress:" + progress);
+            handler.sendEmptyMessage(0);
+        }
+
+        @Override
+        public void onSendFailed() {
+            handler.sendEmptyMessage(-2);
+        }
+
+        @Override
+        public void onSendResult(boolean isSend, byte[] message, boolean binary) {
+            if (isSend) {
+                //发送成功
                 handler.sendEmptyMessage(0);
+            } else {
+                handler.sendEmptyMessage(-1);
             }
-
-            @Override
-            public void onSendFailed() {
-                handler.sendEmptyMessage(-2);
-            }
-
-            @Override
-            public void onSendResult(boolean isSend, byte[] message, boolean binary) {
-                if (isSend) {
-                    //发送成功
-                    handler.sendEmptyMessage(0);
-                } else {
-                    handler.sendEmptyMessage(-1);
-                }
-            }
-        });
-    }
+        }
+    };
 
     @Override
     public void didChangeState(CallState state) {

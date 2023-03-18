@@ -151,8 +151,8 @@ public class ToWebActivity extends BaseActivity implements IUserState {
             @Override
             public void onReceiveMessage(String socketId, String message) {
                 Log.d(TAG, "onReceiveMessage socketId:" + socketId + ",message:" + message);
-                if(message.startsWith("data:image/png;base64,")){
-                    Bitmap bitmap = Base64Util.base64ToBitmap(message.replace("data:image/png;base64,",""));
+                if(message.startsWith("data:image/jpeg;base64,")){
+                    Bitmap bitmap = Base64Util.base64ToBitmap(message.replace("data:image/jpeg;base64,",""));
                     messageAdapter.addItemBitmap(bitmap);
                 }else{
                     messageAdapter.addItemLeftString(message);
@@ -480,8 +480,8 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
 //        String localPeerId = "windows";
 //        String remotePeerId = "hololens";
-        String localPeerId = "zhaozy";
-        String remotePeerId = "zhaozy1";
+        String localPeerId = "zhaozys";
+        String remotePeerId = "zhaozy1s";
         socketManager.connectHttp(Urls.URL_HOST, localPeerId, remotePeerId);
 //        windows hololens
 //        CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);
@@ -526,8 +526,8 @@ public class ToWebActivity extends BaseActivity implements IUserState {
 //        SocketManager.getInstance().connect(Urls.WS, username, 0);
 //        String localPeerId = "hololens";
 //        String remotePeerId = "windows";
-        String localPeerId = "zhaozy1";
-        String remotePeerId = "zhaozy";
+        String localPeerId = "zhaozy1s";
+        String remotePeerId = "zhaozys";
         socketManager.connectHttp(Urls.URL_HOST, localPeerId, remotePeerId);
 //        windows hololens
         CallSingleActivity.openActivity(ToWebActivity.this, "lipengjun", true, "NickName", false, false);

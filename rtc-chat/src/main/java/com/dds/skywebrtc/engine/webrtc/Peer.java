@@ -21,6 +21,7 @@ import org.webrtc.SurfaceViewRenderer;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -87,7 +88,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
 
     // 设置LocalDescription
     public void setLocalDescription(SessionDescription sdp) {
-        Log.d("dds_test", "setLocalDescription:"+sdp.description);
+        Log.d("dds_test", "setLocalDescription:" + sdp.description);
         if (pc == null) return;
 //        sdp.description = sdp.description + "";
         pc.setLocalDescription(this, sdp);
@@ -98,7 +99,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
         if (pc == null) return;
         Log.d("dds_test", "setRemoteDescription：" + sdp.description);
 //        String sdpString = sdp.description;
-        String sdpString = sdp.description.replace("webrtc-datachannel 1024","webrtc-datachannel 1024000");
+        String sdpString = sdp.description.replace("webrtc-datachannel 1024", "webrtc-datachannel 1024000");
         SessionDescription remoteSdp = new SessionDescription(sdp.type, sdpString);
         pc.setRemoteDescription(this, remoteSdp);
 //        pc.setRemoteDescription(this, sdp);
@@ -260,7 +261,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
     public void onCreateSuccess(SessionDescription origSdp) {
         Log.d(TAG, "sdp创建成功       " + origSdp.type);
 //        String sdpString = origSdp.description + "a=max-message-size:262144";
-        String sdpString = origSdp.description.replace("webrtc-datachannel 1024","webrtc-datachannel 1024000");
+        String sdpString = origSdp.description.replace("webrtc-datachannel 1024", "webrtc-datachannel 1024000");
 //        String sdpString = origSdp.description;
         final SessionDescription sdp = new SessionDescription(origSdp.type, sdpString);
         localSdp = sdp;
@@ -391,7 +392,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                         data.get(bytes);
                         if (dataChannelListener != null) {
                             if (buffer.binary) { //是二进制数据
-                                for(DataChannelListener listener:dataChannelListener) {
+                                for (DataChannelListener listener : dataChannelListener) {
                                     listener.onReceiveBinaryMessage(socketId, "", bytes);
                                 }
 //                                if (isHeader) {
@@ -430,33 +431,95 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                             } else { //不是二进制数据
                                 //此处接收的是非二进制数据
                                 String msg = new String(bytes);
-                                if(msg.startsWith("imageSection:")){
-                                    String section = msg.replace("imageSection:","");
-                                    if(section.contains("data:")){
-                                        section = section.substring(0,section.indexOf("data:"));
+//                                String tagJpeg = "data:image/jpeg;base64,";
+//                                String tagPng = "data:image/png;base64,";
+                                if (msg.startsWith("hololens-")) {
+                                    //坐标处理
+                                    for (DataChannelListener listener : dataChannelListener) {
+                                        listener.onReceiveMessage(socketId, msg);
                                     }
-                                    if(section.contains(".")){
-                                        section = section.substring(0,section.indexOf("."));
-                                    }
-                                    imageSection = Integer.parseInt(section);
-                                }
-                                if(imageSection > 0){
-                                    if(imageSectionBuilder == null){
-                                        imageSectionBuilder = new StringBuilder();
-                                    }else {
-                                        imageSectionBuilder.append(msg);
-                                        imageSection--;
-                                        if(imageSection == 0){
-                                            for (DataChannelListener listener : dataChannelListener) {
-                                                listener.onReceiveMessage(socketId, imageSectionBuilder.toString());
-                                            }
-                                            imageSectionBuilder = null;
-                                        }
-                                    }
-                                }else {
+                                } else {
+                                    String tag = msg.substring(0, 17);
+                                    long sendTime = 0;
+                                    int curSection = 0;
+                                    int section = 0;
+                                    try {
+                                        sendTime = Long.parseLong(tag.substring(0, 13));
+                                        curSection = Integer.parseInt(tag.substring(13, 15));
+                                        section = Integer.parseInt(tag.substring(15, 17));
+                                    }catch (Exception e){
+                                        e.printStackTrace();
                                         for (DataChannelListener listener : dataChannelListener) {
                                             listener.onReceiveMessage(socketId, msg);
                                         }
+                                        return;
+                                    }
+                                    if (curSection == 1 && section == 1) {
+                                        //直接发送这里简单
+                                        for (DataChannelListener listener : dataChannelListener) {
+                                            String base64Section = msg.substring(17);
+                                            listener.onReceiveMessage(socketId, base64Section);
+                                        }
+                                    } else {
+                                        if (imageBaseBeans == null) {
+                                            imageBaseBeans = new ArrayList<>();
+                                        }
+                                        boolean isExist = false;
+                                        if (imageBaseBeans.size() == 0) {
+                                            // 直接新建就行；第一个
+                                            ImageBaseBean imageBaseBean = new ImageBaseBean();
+                                            imageBaseBean.sendTime = sendTime;
+                                            imageBaseBean.section = section;
+                                            if (imageBaseBean.hashMap == null) {
+                                                imageBaseBean.hashMap = new HashMap<>();
+                                            }
+                                            String base64Section = msg.substring(17);
+                                            imageBaseBean.hashMap.put(curSection, base64Section);
+                                            imageBaseBeans.add(imageBaseBean);
+                                        } else {
+                                            for (ImageBaseBean curData : imageBaseBeans) {
+                                                if (curData.sendTime == sendTime) {
+                                                    //找到了本家了
+                                                    isExist = true;
+                                                    if (curData.section == section) {
+                                                        if (curData.hashMap == null) {
+                                                            Log.e(TAG, "请求到的base64数据池之前的数据为空异常了");
+                                                            new Throwable("请求到的base64数据池之前的数据为空异常了");
+                                                            return;
+                                                        }
+                                                        String base64Section = msg.substring(17);
+                                                        curData.hashMap.put(curSection, base64Section);
+                                                        //开始检测数据块是否完整；是否可以推送消息了
+                                                        if (curData.section == curData.hashMap.size()) {
+                                                            //数据块完整可以开始拼装数据了
+                                                            StringBuilder sectionBuilder = new StringBuilder();
+                                                            for (int i = 1; i <= curData.section; i++) {
+                                                                sectionBuilder.append(curData.hashMap.get(i));
+                                                            }
+                                                            //这里可以发送数据了
+                                                            for (DataChannelListener listener : dataChannelListener) {
+                                                                listener.onReceiveMessage(socketId, sectionBuilder.toString());
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Log.e(TAG, "跟之前请求的总页码匹配不上啊 : " + curData.section + " , 请求到的：" + tag.substring(16, 17));
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                            if (isExist) {
+                                                //在上面的循环里就已经处理好了;其实这里就不用再次处理了
+                                            } else {
+                                                ImageBaseBean imageBaseBean = new ImageBaseBean();
+                                                imageBaseBean.sendTime = sendTime;
+                                                imageBaseBean.section = section;
+                                                imageBaseBean.hashMap = new HashMap<>();
+                                                String base64Section = msg.substring(17);
+                                                imageBaseBean.hashMap.put(curSection, base64Section);
+                                                imageBaseBeans.add(imageBaseBean);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -468,9 +531,8 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
         }
         return dataChannel;
     }
+    ArrayList<ImageBaseBean> imageBaseBeans;
 
-    int imageSection = 0;
-    StringBuilder imageSectionBuilder;
     /**
      * 使用DataChannel发送普通消息
      *
@@ -490,7 +552,7 @@ public class Peer implements SdpObserver, PeerConnection.Observer {
                 DataChannel.Buffer buffer = new DataChannel.Buffer(ByteBuffer.wrap(message), binary);
                 boolean isSend = dataChannel.send(buffer);
                 Log.d(TAG, "发送完成：" + isSend);
-                for(DataChannelListener listener : dataChannelListener) {
+                for (DataChannelListener listener : dataChannelListener) {
                     listener.onSendResult(isSend, message, binary);
                 }
                 return isSend;
