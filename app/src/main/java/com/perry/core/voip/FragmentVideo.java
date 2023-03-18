@@ -63,6 +63,7 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
 
     SocketManager socketManager;
     ImageView imageView;
+    View glassView;
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -363,17 +364,17 @@ public class FragmentVideo extends SingleCallFragment implements View.OnClickLis
                 @Override
                 public void onClick(int i) {
 //                    如果imageview为空则显示录屏界面；如果存在则显示传递过来的图片
-                    show2Glass(imageView);
-//                    if(glassView == null){
-//                        glassView = fullscreenRenderer;
-//                    }else if(glassView != null && glassView == imageView ){
-//                        glassView = fullscreenRenderer;
-//                    }else if(glassView != null && glassView == pipRenderer ){
-//                        glassView = imageView;
-//                    }else if(glassView != null && glassView == fullscreenRenderer ){
-//                        glassView = pipRenderer;
-//                    }
-//                    show2Glass(glassView);
+//                    show2Glass(imageView);
+                    if(glassView == null){
+                        glassView = fullscreenRenderer;
+                    }else if(glassView != null && glassView == imageView ){
+                        glassView = fullscreenRenderer;//或为 null
+                    }else if(glassView != null && glassView == pipRenderer ){
+                        glassView = imageView;
+                    }else if(glassView != null && glassView == fullscreenRenderer ){
+                        glassView = pipRenderer;
+                    }
+                    show2Glass(glassView);
                 }
             });
             iGlassKeyEvent.setOnGlxssFnDoubleClickListener(new IGlassKeyEvent.OnGlxssDoubleClickListener() {

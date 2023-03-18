@@ -157,7 +157,6 @@ public class ToWebActivity extends BaseActivity implements IUserState {
                 }else{
                     messageAdapter.addItemLeftString(message);
                 }
-
                 handler.sendEmptyMessage(0);
             }
 
